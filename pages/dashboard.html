@@ -3,70 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Learn to trade Solana memecoins with lessons, practice tools, and an AI trading assistant.">
-    <title>Lykeion - Dashboard</title>
+    <meta name="description" content="paper dashboard — training, paper trading, and AI research.">
+    <title>paper — Dashboard</title>
     <link rel="icon" type="image/png" href="../assets/icons/favicon.png">
     <link rel="apple-touch-icon" href="../assets/icons/favicon.png">
-    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/theme.js"></script>
+    <link rel="stylesheet" href="../styles/style.css?v=light-soul-2">
+    <link rel="stylesheet" href="../styles/landing-premium.css?v=light-soul-1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="../scripts/firebase-config.js"></script>
-    <script src="../scripts/firestore-utils.js"></script>
+    <script src="../scripts/data-utils.js"></script>
+    <script src="../scripts/wallet-auth.js"></script>
+    <script src="../scripts/wallet-logos.js"></script>
+    <script src="../scripts/wallet-modal.js"></script>
+    <script src="../scripts/wallet-nav.js"></script>
+    <script src="../scripts/leaderboard-sync.js?v=2"></script>
 </head>
-<body>
-    <div class="cursor-glow"></div>
-    <div class="background-pattern"></div>
-    
-    <nav class="navbar">
-        <span class="nav-logo">Lykeion</span>
-        <div style="display: flex; gap: 16px; align-items: center;">
-            <a href="https://x.com/_ppotat0"><img src="../assets/icons/icons8-x-50.png" alt="Close" class="x-icon"></a>
-        </div>
-    </nav>
-    
-    <main class="main-content dashboard-main">
-        <div class="greeting-block fade-in-up">
-            <p class="greeting-label">Hello,</p>
-            <h1 class="dashboard-greeting" id="greeting">user</h1>
-        </div>
-
-        <div class="dashboard-cards deck-shell">
-            <div class="works-deck">
-                <div class="dashboard-card work-swipe-card fade-in-up delay-1" data-card="1" data-href="lycuem-course">
-                    <div class="card-content">
-                        <h3 class="card-title">Memecoin Lessons</h3>
-                        <p class="card-description">Learn to trade Solana memecoins step by step</p>
-                    </div>
-                </div>
-                <div class="dashboard-card work-swipe-card fade-in-up delay-2" data-card="2" data-href="lykeion-ai">
-                    <div class="card-content">
-                        <h3 class="card-title">AI assistant</h3>
-                        <p class="card-description">Ask anything about Solana, memecoins, and trading strategies</p>
-                    </div>
-                </div>
-                <div class="dashboard-card work-swipe-card fade-in-up delay-2" data-card="3" data-href="demo-trading">
-                    <div class="card-content">
-                        <h3 class="card-title">Demo Trading</h3>
-                        <p class="card-description">Practice trading in a simulated environment</p>
-                    </div>
-                </div>
+<body class="page-dashboard">
+    <header class="landing-header" id="landing-header">
+        <nav class="landing-nav" aria-label="Main">
+            <a href="/" class="landing-nav__brand">
+                <img src="../assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+            </a>
+            <div class="landing-nav__actions">
+                <button type="button" class="nav-connect-btn landing-nav__connect nav-metal-pill" id="nav-connect-btn"><span class="nav-metal-pill__label metal-shine-button__label">Connect Wallet</span></button>
+                <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" aria-pressed="false">
+                    <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+                </button>
             </div>
-        </div>
-        <p class="swipe-hint">swipe left or right</p>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        <section class="dashboard-shell">
+            <header class="dashboard-hero fade-in-up">
+                <h1 class="dashboard-greeting">Welcome back, <span id="greeting">user</span></h1>
+            </header>
+
+            <section class="dash-rewards-panel fade-in-up delay-1" aria-label="paper site statistics">
+                <div class="dash-rewards-stats" aria-label="paper site statistics">
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>Total users</span>
+                        <strong data-dashboard-stat="totalUsers">—</strong>
+                    </div>
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>24h paper volume</span>
+                        <strong class="is-up" data-dashboard-stat="volume24hSol">—</strong>
+                    </div>
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>Paper trades</span>
+                        <strong data-dashboard-stat="paperTrades">—</strong>
+                    </div>
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>Active traders</span>
+                        <strong data-dashboard-stat="activeTraders">—</strong>
+                    </div>
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>Daily reward pool</span>
+                        <strong class="is-up" data-reward-pool-total>0.50 SOL</strong>
+                    </div>
+                    <div class="dash-rewards-stat" tabindex="0">
+                        <span>Next payout</span>
+                        <strong data-dashboard-stat="nextPayout">—</strong>
+                    </div>
+                    <div class="dash-rewards-actions">
+                        <a href="/pages/leaderboard" class="dash-premium-button">
+                            <span>View leaderboard</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <div class="dash-dock-wrap fade-in-up delay-1" aria-label="Dashboard modules">
+                <div class="dash-dock-orbit" aria-hidden="true"></div>
+                <nav class="dash-dock" id="dashboard-dock" aria-label="Dashboard dock">
+                    <a href="lycuem-course" class="dash-dock__item dash-dock__item--train" data-dock-title="Lessons" data-dock-desc="Open lessons">
+                        <span class="dash-dock__tooltip">lessons</span>
+                        <span class="dash-dock__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img">
+                                <path d="M5 4.5h9.5A3.5 3.5 0 0 1 18 8v11.5H7.5A3.5 3.5 0 0 1 4 16V5.5a1 1 0 0 1 1-1Z"></path>
+                                <path d="M8 8h6M8 11h5M8 14h4"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <a href="demo-trading" class="dash-dock__item dash-dock__item--demo" data-dock-title="Paper Trade" data-dock-desc="Practice paper trades">
+                        <span class="dash-dock__tooltip">Paper Trade</span>
+                        <span class="dash-dock__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img">
+                                <path d="M4 17 9 12l4 4 7-9"></path>
+                                <path d="M4 20h16M4 4v16"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <a href="paper-ai" class="dash-dock__item dash-dock__item--ai" data-dock-title="paper AI" data-dock-desc="Launch assistant">
+                        <span class="dash-dock__tooltip">paper AI</span>
+                        <span class="dash-dock__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img">
+                                <path d="M12 2l1.4 4.8L18 8l-4.6 1.2L12 14l-1.4-4.8L6 8l4.6-1.2L12 2Z"></path>
+                                <path d="M19 13l.7 2.3L22 16l-2.3.7L19 19l-.7-2.3L16 16l2.3-.7L19 13Z"></path>
+                                <path d="M5 16l.5 1.7L7 18l-1.5.5L5 20l-.5-1.5L3 18l1.5-.5L5 16Z"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    <a href="/pages/user-stats" class="dash-dock__item dash-dock__item--stats" data-dock-title="Profile" data-dock-desc="View your stats">
+                        <span class="dash-dock__tooltip">Profile</span>
+                        <span class="dash-dock__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img">
+                                <circle cx="12" cy="8" r="4"></circle>
+                                <path d="M5 20a7 7 0 0 1 14 0"></path>
+                            </svg>
+                        </span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="dash-grid fade-in-up delay-1" hidden>
+                <a href="lycuem-course" class="dash-card dash-card--train">
+                    <div class="dash-card__visual" aria-hidden="true">
+                        <div class="dash-mock dash-mock--course">
+                            <div class="dash-mock__head">
+                                <span>Curriculum</span>
+                                <em>42%</em>
+                            </div>
+                            <div class="dash-mock__progress"><i></i></div>
+                            <div class="dash-mock__module is-done"><span>01</span> Solana fundamentals</div>
+                            <div class="dash-mock__module is-active"><span>02</span> Memecoin dynamics</div>
+                            <div class="dash-mock__module"><span>03</span> Risk management</div>
+                        </div>
+                    </div>
+                    <div class="dash-card__body">
+                        <span class="dash-card__tag">Training</span>
+                        <h3 class="dash-card__title">Curriculum</h3>
+                        <p class="dash-card__desc">Structured lessons from Solana basics to live execution.</p>
+                        <span class="dash-card__link">Open curriculum →</span>
+                    </div>
+                </a>
+
+                <a href="demo-trading" class="dash-card dash-card--demo">
+                    <div class="dash-card__visual" aria-hidden="true">
+                        <div class="dash-mock dash-mock--demo">
+                            <div class="dash-mock__board-head">
+                                <span>◎ Paper Trade</span>
+                                <em>5.00 SOL</em>
+                            </div>
+                            <div class="dash-mock__tokens">
+                                <div class="dash-mock__token has-pos">
+                                    <i class="dash-mock__icon dash-mock__icon--bonk"></i>
+                                    <div><strong>BONK</strong><span>v$42K</span></div>
+                                    <b>1 SOL</b>
+                                </div>
+                                <div class="dash-mock__token">
+                                    <i class="dash-mock__icon dash-mock__icon--wif"></i>
+                                    <div><strong>WIF</strong><span>v$18K</span></div>
+                                    <b>1 SOL</b>
+                                </div>
+                                <div class="dash-mock__token">
+                                    <i class="dash-mock__icon dash-mock__icon--cat"></i>
+                                    <div><strong>POPCAT</strong><span>v$9K</span></div>
+                                    <b>1 SOL</b>
+                                </div>
+                            </div>
+                            <div class="dash-mock__pnl">Open · BONK · <strong>+0.42 SOL</strong></div>
+                        </div>
+                    </div>
+                    <div class="dash-card__body">
+                        <span class="dash-card__tag">Paper Trade</span>
+                        <h3 class="dash-card__title">Paper trading</h3>
+                        <p class="dash-card__desc">Pump-style board — fake SOL, real reps, zero risk.</p>
+                        <span class="dash-card__link">Open paper trade →</span>
+                    </div>
+                </a>
+
+                <a href="paper-ai" class="dash-card dash-card--ai">
+                    <div class="dash-card__visual" aria-hidden="true">
+                        <div class="dash-mock dash-mock--ai">
+                            <div class="dash-mock__chat dash-mock__chat--user">What's the holder concentration?</div>
+                            <div class="dash-mock__chat dash-mock__chat--ai">
+                                <span>paper AI</span>
+                                <div class="dash-mock__stat-grid">
+                                    <div><em>Top 10</em><strong>34%</strong></div>
+                                    <div><em>Largest</em><strong>8.2%</strong></div>
+                                    <div><em>Liq locked</em><strong class="warn">No</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dash-card__body">
+                        <span class="dash-card__tag">AI</span>
+                        <h3 class="dash-card__title">Research assistant</h3>
+                        <p class="dash-card__desc">Wallet reads, token context, and setup checks in one chat.</p>
+                        <span class="dash-card__link">Launch assistant →</span>
+                    </div>
+                </a>
+            </div>
+        </section>
     </main>
 
-    <a href="/" class="floating-back-btn" title="Go back">
-        <span>←</span>
-    </a>
-
+    <script src="../scripts/interactive-dots.js?v=atmosphere-1"></script>
     <script src="../scripts/cursor-utils.js"></script>
-    <script src="../scripts/dashboard.js"></script>
+    <script src="../scripts/dashboard.js?v=stats-3"></script>
+    <script src="../scripts/reward-pool.js?v=1"></script>
     <script src="/scripts/vercel-analytics.js"></script>
 </body>
 </html>

@@ -4,83 +4,153 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Learn to trade Solana memecoins with lessons, practice tools, and an AI trading assistant." />
-  <title>Lykeion - Course</title>
+  <title>paper - Course</title>
   <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
   <link rel="apple-touch-icon" href="../assets/icons/favicon.png" />
-  <link rel="stylesheet" href="../styles/style.css" />
+  <script src="../scripts/theme.js"></script>
+  <link rel="stylesheet" href="../styles/style.css?v=no-grid-5" />
+  <link rel="stylesheet" href="../styles/landing-premium.css?v=nav-metal-2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-  <script src="../scripts/firebase-config.js"></script>
-  <script src="../scripts/firestore-utils.js"></script>
+  <script src="../scripts/data-utils.js"></script>
+  <script src="../scripts/wallet-auth.js"></script>
+  <script src="../scripts/wallet-logos.js"></script>
+  <script src="../scripts/wallet-modal.js"></script>
+  <script src="../scripts/wallet-nav.js"></script>
 </head>
 <body class="page-course">
-  <div class="cursor-glow"></div>
-  <div class="background-pattern"></div>
+  <header class="landing-header" id="landing-header">
+    <nav class="landing-nav" aria-label="Main">
+      <a href="/pages/dashboard" class="landing-nav__brand landing-nav__brand--back" data-nav-back aria-label="Back">
+        <span class="landing-nav__back" aria-hidden="true">←</span>
+        <img src="../assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+      </a>
+      <div class="landing-nav__actions">
+        <button type="button" class="hamburger-btn course-menu-btn" id="hamburgerBtn" aria-label="Toggle lesson menu">
+          <span></span><span></span><span></span>
+        </button>
+        <button type="button" class="nav-connect-btn landing-nav__connect nav-metal-pill" id="nav-connect-btn"><span class="nav-metal-pill__label metal-shine-button__label">Connect Wallet</span></button>
+        <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+        </button>
+      </div>
+    </nav>
+  </header>
 
-  <nav class="navbar">
-    <a href="dashboard"><img src="../assets/icons/icons8-x-50.png" alt="Close" class="x-icon" /></a>
-    <span class="nav-logo">Lykeion</span>
-    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle sidebar">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-  </nav>
-
-  <main class="course-main">
-    <div class="course-layout">
-      <!-- Left Sidebar -->
-      <aside class="course-sidebar fade-in-up" id="courseSidebar">
-        <h2 class="sidebar-title">memecoin lessons</h2>
-        <nav class="sidebar-nav">
-          <a href="#" class="sidebar-item active" data-chapter="1" data-lesson-id="lesson-1">What is Cryptocurrency?</a>
-          <a href="#" class="sidebar-item" data-chapter="2" data-lesson-id="lesson-2">How to Trade on Solana</a>
-          <a href="#" class="sidebar-item" data-chapter="3" data-lesson-id="lesson-3">Understanding Solana Memecoins</a>
-          <a href="#" class="sidebar-item" data-chapter="4" data-lesson-id="lesson-4">Strategies for Solana Meme Coin Trading</a>
-          <a href="#" class="sidebar-item" data-chapter="5" data-lesson-id="lesson-5">What's Next</a>
-  </nav>
+  <main class="train-main course-main">
+    <div class="train-workspace course-layout">
+      <aside class="train-rail course-sidebar" id="courseSidebar">
+        <div class="train-rail__top">
+          <a href="dashboard" class="train-rail__back" aria-label="Back to dashboard">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Dashboard
+          </a>
+          <div class="train-rail__progress" aria-label="Course progress">
+            <div class="train-rail__track">
+              <div class="train-rail__fill" id="trainProgressFill" style="width: 20%"></div>
+            </div>
+            <span class="train-rail__label" id="trainProgressText">Lesson 1 of 5</span>
+          </div>
+        </div>
+        <div class="train-rail__head">
+          <h2 class="train-rail__title">Curriculum</h2>
+          <p class="train-rail__meta">5 lessons · Solana memecoins</p>
+        </div>
+        <nav class="train-rail__nav sidebar-nav" aria-label="Lessons">
+            <a href="#" class="train-step sidebar-item active" data-chapter="1" data-lesson-id="lesson-1">
+              <span class="train-step__track" aria-hidden="true"><span class="train-step__dot"></span></span>
+              <span class="train-step__body">
+                <span class="sidebar-item__num">01</span>
+                <span class="sidebar-item__label">What is Cryptocurrency?</span>
+              </span>
+            </a>
+            <a href="#" class="train-step sidebar-item" data-chapter="2" data-lesson-id="lesson-2">
+              <span class="train-step__track" aria-hidden="true"><span class="train-step__dot"></span></span>
+              <span class="train-step__body">
+                <span class="sidebar-item__num">02</span>
+                <span class="sidebar-item__label">How to Trade on Solana</span>
+              </span>
+            </a>
+            <a href="#" class="train-step sidebar-item" data-chapter="3" data-lesson-id="lesson-3">
+              <span class="train-step__track" aria-hidden="true"><span class="train-step__dot"></span></span>
+              <span class="train-step__body">
+                <span class="sidebar-item__num">03</span>
+                <span class="sidebar-item__label">Understanding Solana Memecoins</span>
+              </span>
+            </a>
+            <a href="#" class="train-step sidebar-item" data-chapter="4" data-lesson-id="lesson-4">
+              <span class="train-step__track" aria-hidden="true"><span class="train-step__dot"></span></span>
+              <span class="train-step__body">
+                <span class="sidebar-item__num">04</span>
+                <span class="sidebar-item__label">Strategies for Meme Coin Trading</span>
+              </span>
+            </a>
+            <a href="#" class="train-step sidebar-item" data-chapter="5" data-lesson-id="lesson-5">
+              <span class="train-step__track" aria-hidden="true"><span class="train-step__dot"></span></span>
+              <span class="train-step__body">
+                <span class="sidebar-item__num">05</span>
+                <span class="sidebar-item__label">What's Next</span>
+              </span>
+            </a>
+          </nav>
       </aside>
 
-      <!-- Right Content Panel -->
-      <div class="course-content fade-in-up delay-1">
-        <div class="content-inner">
-          <h2 class="content-title" id="contentTitle">What is Cryptocurrency and how does it work?</h2>
-          <div class="content-body" id="contentBody">
-            <!-- Lesson content will be loaded by JavaScript -->
+      <article class="train-reader course-content">
+        <div class="train-reader__mobile-meta">
+          <a href="dashboard" class="train-rail__back" aria-label="Back to dashboard">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Dashboard
+          </a>
+          <div class="train-rail__progress" aria-label="Course progress">
+            <div class="train-rail__track">
+              <div class="train-rail__fill" id="trainProgressFillMobile" style="width: 20%"></div>
             </div>
+            <span class="train-rail__label" id="trainProgressTextMobile">Lesson 1 of 5</span>
+          </div>
         </div>
-    </div>
+        <header class="train-reader__head">
+            <span class="train-reader__tag" id="trainLessonTag">Lesson 01</span>
+            <h1 class="train-reader__title content-title" id="contentTitle">What is Cryptocurrency and how does it work?</h1>
+          </header>
+          <div class="train-reader__scroll">
+            <div class="train-reader__body content-body" id="contentBody">
+              <!-- Lesson content loaded by JavaScript -->
+            </div>
+          </div>
+        </article>
     </div>
   </main>
 
-  <footer class="footer">
-    <p>&copy; 2026 pinkpotato</p>
-  </footer>
+  <div class="train-rail-backdrop" id="trainRailBackdrop" aria-hidden="true"></div>
 
-  <a href="dashboard" class="floating-back-btn" title="Go back">
-    <span>←</span>
-  </a>
-
+  <script src="../scripts/interactive-dots.js?v=boxes-2"></script>
   <script src="../scripts/cursor-utils.js"></script>
   <script>
+    (function () {
+      var header = document.getElementById('landing-header');
+      if (header) {
+        window.addEventListener('scroll', function () {
+          header.classList.toggle('is-scrolled', window.scrollY > 24);
+        }, { passive: true });
+      }
+    })();
+
     // Hamburger menu toggle - Initialize variables first
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('courseSidebar');
+    const railBackdrop = document.getElementById('trainRailBackdrop');
     
     function closeSidebar() {
       if (sidebar) sidebar.classList.remove('sidebar-open');
       if (hamburgerBtn) hamburgerBtn.classList.remove('active');
+      if (railBackdrop) railBackdrop.classList.remove('is-visible');
     }
     
     function toggleSidebar() {
       if (sidebar) sidebar.classList.toggle('sidebar-open');
       if (hamburgerBtn) hamburgerBtn.classList.toggle('active');
+      if (railBackdrop) railBackdrop.classList.toggle('is-visible');
     }
     
     if (hamburgerBtn && sidebar) {
@@ -88,6 +158,10 @@
         e.stopPropagation();
         toggleSidebar();
       });
+
+      if (railBackdrop) {
+        railBackdrop.addEventListener('click', closeSidebar);
+      }
       
       // Close sidebar when clicking outside on mobile
       document.addEventListener('click', (e) => {
@@ -101,8 +175,26 @@
       });
     }
 
+    // Update progress bar + lesson tag when switching chapters
+    function updateTrainMeta(chapter) {
+      var num = parseInt(chapter, 10) || 1;
+      var pct = ((num / 5) * 100) + '%';
+      var label = 'Lesson ' + num + ' of 5';
+      var tag = document.getElementById('trainLessonTag');
+      ['trainProgressFill', 'trainProgressFillMobile'].forEach(function (id) {
+        var fill = document.getElementById(id);
+        if (fill) fill.style.width = pct;
+      });
+      ['trainProgressText', 'trainProgressTextMobile'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = label;
+      });
+      if (tag) tag.textContent = 'Lesson ' + String(num).padStart(2, '0');
+    }
+
     // Function to load chapter content
     function loadChapterContent(chapter) {
+      updateTrainMeta(chapter);
       const contentTitle = document.getElementById('contentTitle');
       const contentBody = document.getElementById('contentBody');
       
@@ -913,11 +1005,12 @@
 
     // Load user progress and update sidebar
     async function loadUserProgress() {
-      const user = firebase.auth().currentUser;
-      if (!user) return;
+      if (!WalletAuth.isConnected()) return;
+      var userId = WalletAuth.getUserId();
+      if (!userId) return;
       
       try {
-        const allProgress = await getAllLessonsProgress(user.uid);
+        const allProgress = await getAllLessonsProgress(userId);
         document.querySelectorAll('.sidebar-item').forEach(item => {
           const lessonId = item.dataset.lessonId;
           if (lessonId && allProgress[lessonId] && allProgress[lessonId].completed) {
@@ -929,20 +1022,22 @@
       }
     }
 
-    // Check auth state and load progress (after Firebase config from /api/firebase-config)
-    window.__firebaseReadyPromise.then(function () {
-      firebase.auth().onAuthStateChanged(async (user) => {
-        if (user) {
-          await loadUserProgress();
-          // Load first lesson by default
-          loadChapterContent('1');
-        } else {
-          window.location.href = 'login';
-        }
+    if (!WalletAuth.requireAuth()) {
+      // modal opened
+    } else {
+      window.addEventListener('paper:wallet-connected', function () {
+        window.location.reload();
       });
-    }).catch(function (err) {
-      console.error('Firebase init failed:', err);
-    });
+
+      window.__paperDataReadyPromise.then(async function () {
+        await WalletAuth.ensureWalletUserProfile(WalletAuth.getUserId(), WalletAuth.getSession()?.walletName);
+        await loadUserProgress();
+        loadChapterContent('1');
+      }).catch(function (err) {
+        console.warn('Data sync skipped:', err);
+        loadChapterContent('1');
+      });
+    }
 
     // Chapter navigation
     document.querySelectorAll('.sidebar-item').forEach(item => {
@@ -970,13 +1065,13 @@
     // Next Lesson Button Handler
     document.addEventListener('click', async (e) => {
       if (e.target.id === 'nextLessonBtn' || e.target.closest('#nextLessonBtn')) {
-        await window.__firebaseReadyPromise;
+        await window.__paperDataReadyPromise;
         const btn = e.target.closest('#nextLessonBtn') || e.target;
         const nextChapter = btn.dataset.nextChapter;
-        const user = firebase.auth().currentUser;
+        const userId = WalletAuth.getUserId();
         
-        if (!user) {
-          alert('Please log in to continue');
+        if (!userId) {
+          alert('Please connect your wallet to continue');
           return;
         }
         
@@ -987,9 +1082,9 @@
           const currentLessonId = `lesson-${currentChapter}`;
           
           // Save lesson completion
-          await saveLessonProgress(user.uid, currentLessonId, {
+          await saveLessonProgress(userId, currentLessonId, {
             completed: true,
-            completedAt: firebase.firestore.FieldValue.serverTimestamp()
+            completedAt: new Date().toISOString()
           });
           
           // Update sidebar to show completed
@@ -1012,6 +1107,7 @@
       }
     });
   </script>
+  <script src="../scripts/nav-back.js"></script>
   <script src="/scripts/vercel-analytics.js"></script>
 </body>
 </html>

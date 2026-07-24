@@ -1,160 +1,76 @@
-// Tab switching with animation
-const tabs = document.querySelectorAll('.auth-tab');
-const forms = document.querySelectorAll('.auth-form');
+(function () {
+    var msgEl = document.getElementById('msg');
+    var recentSection = document.getElementById('wallet-recent-section');
+    var recentList = document.getElementById('wallet-recent-list');
+    var walletGrid = document.getElementById('wallet-grid');
 
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    const targetTab = tab.dataset.tab;
-    tabs.forEach(t => t.classList.remove('active'));
-    forms.forEach(f => {
-      f.classList.remove('active');
-      f.style.animation = 'none';
-      setTimeout(() => {
-        f.style.animation = '';
-      }, 10);
-    });
-
-    tab.classList.add('active');
-    const targetForm = document.getElementById(targetTab === 'signin' ? 'signinForm' : 'signupForm');
-    setTimeout(() => {
-      targetForm.classList.add('active');
-    }, 50);
-  });
-});
-
-// Password visibility toggle
-document.querySelectorAll('.password-toggle').forEach(toggle => {
-  toggle.addEventListener('click', () => {
-    const targetId = toggle.getAttribute('data-target');
-    const passwordInput = document.getElementById(targetId);
-    const eyeIcon = toggle.querySelector('.eye-icon img');
-
-    if (passwordInput.type === 'password') {
-      passwordInput.type = 'text';
-      eyeIcon.src = '../assets/icons/icons8-closed-eye-48.png';
-      eyeIcon.alt = 'Hide password';
-    } else {
-      passwordInput.type = 'password';
-      eyeIcon.src = '../assets/icons/icons8-eye-24.png';
-      eyeIcon.alt = 'Show password';
-    }
-  });
-});
-
-// Form submission handlers with Firebase Auth
-document.getElementById('signinForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const msgEl = document.getElementById('msg');
-  const email = document.getElementById('signinEmail').value;
-  const password = document.getElementById('signinPassword').value;
-
-  msgEl.textContent = 'Signing in...';
-  msgEl.className = 'auth-message loading';
-
-  try {
-    await window.__firebaseReadyPromise;
-    const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
-    const userData = await getUserProfile(userCredential.user.uid);
-    let displayUsername;
-    if (!userData || !userData.username) {
-      displayUsername = userCredential.user.displayName || email.split('@')[0];
-      await saveUsernameToFirestore(userCredential.user.uid, email, displayUsername);
-    } else {
-      displayUsername = userData.username;
-    }
-    try {
-      localStorage.setItem('lykeion.username', displayUsername);
-    } catch (e) { /* ignore */ }
-
-    msgEl.textContent = 'Sign in successful!';
-    msgEl.className = 'auth-message success';
-    setTimeout(() => {
-      window.location.href = 'dashboard';
-    }, 1000);
-  } catch (error) {
-    let errorMessage = 'Sign in failed. ';
-    switch (error.code) {
-      case 'auth/user-not-found':
-        errorMessage += 'No account found with this email.';
-        break;
-      case 'auth/wrong-password':
-        errorMessage += 'Incorrect password.';
-        break;
-      case 'auth/invalid-email':
-        errorMessage += 'Invalid email address.';
-        break;
-      case 'auth/user-disabled':
-        errorMessage += 'This account has been disabled.';
-        break;
-      default:
-        errorMessage += error.message;
-    }
-    msgEl.textContent = errorMessage;
-    msgEl.className = 'auth-message error';
-  }
-});
-
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const msgEl = document.getElementById('msg');
-  const email = document.getElementById('signupEmail').value;
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('signupPassword').value;
-
-  msgEl.textContent = 'Creating account...';
-  msgEl.className = 'auth-message loading';
-
-  try {
-    await window.__firebaseReadyPromise;
-    if (!username) {
-      msgEl.textContent = 'Please enter a username.';
-      msgEl.className = 'auth-message error';
-      return;
+    function setMessage(text, type) {
+        if (!msgEl) return;
+        msgEl.textContent = text;
+        msgEl.className = 'auth-message' + (type ? ' ' + type : '');
     }
 
-    const usernameAvailable = await isUsernameAvailable(username);
-    if (usernameAvailable === false) {
-      msgEl.textContent = 'Username already taken. Please choose another.';
-      msgEl.className = 'auth-message error';
-      return;
+    function walletIcon(id) {
+        var icons = {
+            jupiter: '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="jup" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22c55e"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><circle cx="16" cy="16" r="14" fill="url(#jup)"/><ellipse cx="16" cy="16" rx="14" ry="5" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/></svg>',
+            phantom: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#ab9ff2"/><path fill="#fff" d="M22 14.5c0-3.6-2.9-6.5-6.5-6.5S9 10.9 9 14.5c0 2.8 1.8 5.2 4.3 6.1-.2.7-.8 2.4-1 3.1-.1.4.3.7.6.5.8-.5 2.4-1.6 3.2-2.1.4.1.9.1 1.4.1 3.6 0 6.5-2.9 6.5-6.5z"/></svg>',
+            trust: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0500ff"/><path fill="#fff" d="M16 7l7 3v6c0 5-3 9-7 11-4-2-7-6-7-11v-6l7-3z"/></svg>',
+            metamask: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#f6851b"/><path fill="#e2761b" d="M16 6l-8 8 2 12 6 4 6-4 2-12-8-8z"/></svg>',
+            solflare: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#fc8c04"/><path fill="#111" d="M10 20l6-12 6 12H10z"/></svg>'
+        };
+        return icons[id] || '';
     }
 
-    const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-    await userCredential.user.updateProfile({
-      displayName: username
-    });
-
-    await saveUserProfile(userCredential.user.uid, {
-      email: email,
-      username: username
-    });
-
-    try {
-      localStorage.setItem('lykeion.username', username);
-    } catch (e) { /* ignore */ }
-
-    msgEl.textContent = 'Account created! Redirecting...';
-    msgEl.className = 'auth-message success';
-    setTimeout(() => {
-      window.location.href = 'dashboard';
-    }, 1000);
-  } catch (error) {
-    let errorMessage = 'Sign up failed. ';
-    switch (error.code) {
-      case 'auth/email-already-in-use':
-        errorMessage += 'This email is already registered.';
-        break;
-      case 'auth/invalid-email':
-        errorMessage += 'Invalid email address.';
-        break;
-      case 'auth/weak-password':
-        errorMessage += 'Password should be at least 6 characters.';
-        break;
-      default:
-        errorMessage += error.message;
+    function renderWalletButton(wallet, isRecent) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'wallet-option' + (WalletAuth.isInstalled(wallet.id) ? '' : ' is-uninstalled');
+        btn.dataset.walletId = wallet.id;
+        btn.innerHTML =
+            '<span class="wallet-option-icon">' + walletIcon(wallet.id) + '</span>' +
+            '<span class="wallet-option-name">' + wallet.name + '</span>' +
+            (WalletAuth.isInstalled(wallet.id) ? '' : '<span class="wallet-option-hint">Install</span>');
+        btn.addEventListener('click', function () { handleConnect(wallet.id); });
+        return btn;
     }
-    msgEl.textContent = errorMessage;
-    msgEl.className = 'auth-message error';
-  }
-});
 
+    async function handleConnect(walletId) {
+        setMessage('Connecting…', 'loading');
+        try {
+            await WalletAuth.connect(walletId);
+            setMessage('Connected! Redirecting…', 'success');
+            setTimeout(function () {
+                window.location.href = 'dashboard';
+            }, 600);
+        } catch (err) {
+            setMessage(err.message || 'Connection failed', 'error');
+        }
+    }
+
+    function renderWalletLists() {
+        if (!walletGrid) return;
+
+        var recent = WalletAuth.readRecent();
+        if (recent && recent.walletId && recentSection && recentList) {
+            var rw = WalletAuth.getWallet(recent.walletId);
+            if (rw) {
+                recentSection.hidden = false;
+                recentList.innerHTML = '';
+                recentList.appendChild(renderWalletButton(rw, true));
+            }
+        }
+
+        walletGrid.innerHTML = '';
+        WalletAuth.WALLETS.forEach(function (wallet) {
+            if (recent && wallet.id === recent.walletId) return;
+            walletGrid.appendChild(renderWalletButton(wallet));
+        });
+    }
+
+    if (WalletAuth.isConnected()) {
+        window.location.href = 'dashboard';
+        return;
+    }
+
+    renderWalletLists();
+})();

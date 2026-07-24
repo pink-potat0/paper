@@ -1,82 +1,109 @@
-# Lykeion
+# paper
 
-Learn to trade Solana memecoins — lessons, practice tools, and an AI trading assistant in one place.
+Learn to trade Solana memecoins through lessons, practice tools, and an AI trading assistant.
 
-Live: [lykeion.app](https://lykeion.app)
+Live: [paper.app](https://paper.app)
 
-$LYKEION CA 3GWpjiGgTo2RckTLRo71AJijvxkhescZ4QgSGWdPbpump
----
+`$paper` CA: `3GWpjiGgTo2RckTLRo71AJijvxkhescZ4QgSGWdPbpump`
 
-## What's inside
+## What's Inside
 
-- **Course** — structured lessons on Solana trading, memecoin mechanics, and trading bots.
-- **Demo Terminal** — a practice trading terminal with a live pump.fun feed (new / soon / migrated columns), virtual SOL balance, and a real GeckoTerminal chart per token.
-- **Lykeion AI** — a Solana-focused chat assistant. Ask for token info, price snapshots, hot tokens, launchpad volume, or a full wallet analysis.
-- **Wallet Analysis** — deep on-chain breakdown of any Solana wallet, powered by the [Helius](https://www.helius.dev/) Enhanced Transactions API.
+- **Course**: structured lessons on Solana trading, memecoin mechanics, risk management, and trading bots.
+- **Paper trading board**: a practice board with live Pump.fun-style columns, virtual SOL balance, portfolio stats, and local trade history.
+- **Demo terminal**: a token terminal with chart-only mode, market metadata, simulated buys/sells, positions, and transaction feed.
+- **paper AI**: a Solana-focused assistant for token research, price snapshots, wallet analysis, and educational trading questions.
+- **Leaderboard and profiles**: wallet-authenticated usernames, trade stat sync, public leaderboard, user stats, and reward pool display.
 
----
+## Screenshots
 
 ### Demo Trading Terminal
-![Lykeion Terminal](docs/screenshots/terminal.png)
 
-### Wallet Analysis (Lykeion AI)
+![paper Terminal](docs/screenshots/terminal.png)
+
+### Wallet Analysis
+
 ![Wallet Analysis](docs/screenshots/wallet-analysis.png)
-
----
-
-## Wallet Analysis features
-
-Paste any Solana address into the AI and get:
-
-- **Balance + 7D Net PnL** (SOL and USD)
-- **Top trades** — bought, sold, realized + unrealized PnL per token
-
-Tap **Get more info** to unlock:
-
-- **Trade frequency** — per-hour and per-day-of-week charts; auto-classifies the wallet as bot / scheduled farm / late-night degen / active trader
-- **Average hold time** — matches buy→sell pairs per mint; shows fastest flip and longest hold
-- **Possible side wallets** — detects linked wallets via outbound SOL transfers and shared token entries
-
-All three are computed from Helius Enhanced Transactions (`events.swap`, `tokenTransfers`, `nativeTransfers`).
-
----
 
 ## Tech
 
-- Vanilla HTML / CSS / JS (no framework)
-- Express static server ([server.js](server.js))
-- Firebase Auth + Firestore (chat history)
-- OpenAI `gpt-4o-mini` (assistant replies)
-- Helius RPC + Enhanced Transactions (wallet analysis, token metadata)
-- DexScreener (prices + token names)
-- GeckoTerminal embed (charts)
+- Vanilla HTML, CSS, and JavaScript
+- Express static/API server ([server.js](server.js))
+- MongoDB for wallet registration, leaderboard data, course progress, and chat history
+- OpenAI `gpt-4o-mini` behind `/api/openai-chat` and `/api/chat`
+- Helius, Solana Tracker, DexScreener, GeckoTerminal, Jupiter, and Pump.fun data integrations
 - Vercel deployment
 
----
-
-## Running locally
+## Running Locally
 
 ```bash
 npm install
-cp .env.example .env   # fill in keys
-node server.js
+copy env.example .env
+npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-### Required env vars
+On macOS/Linux, use `cp env.example .env` instead of `copy`.
 
-```
+## Required Configuration
+
+The app can boot without private keys, but app data requires MongoDB unless you explicitly enable the SQLite test fallback.
+
+Minimum useful local setup:
+
+```env
+MONGODB_URI=mongodb+srv://...
 OPENAI_API_KEY=sk-...
 HELIUS_API_KEY=...
-SOLANA_TRACKER_API_KEY=...   # optional, for a few widgets
+SOLANA_TRACKER_API_KEY=...
 
-FIREBASE_API_KEY=...
-FIREBASE_AUTH_DOMAIN=...
-FIREBASE_PROJECT_ID=...
-FIREBASE_STORAGE_BUCKET=...
-FIREBASE_MESSAGING_SENDER_ID=...
-FIREBASE_APP_ID=...
 ```
 
-Secrets are exposed to the client through `/api/lykeion-secrets` and `/api/firebase-config` — only the non-sensitive keys are forwarded.
+Production setup should also include:
+
+```env
+PAPER_CREATOR_WALLET=...
+PAPER_TOKEN_MINT=...
+```
+
+Check non-secret readiness with:
+
+```bash
+curl http://localhost:3000/api/config-status
+```
+
+## Quality Checks
+
+```bash
+npm test
+npm run build:analytics
+node --check server.js
+```
+
+`npm test` runs a route/API smoke test against the Express app on a temporary port and temporary SQLite fallback database. It sets `ALLOW_SQLITE_FALLBACK=true` for the test process only. It does not require private keys; OpenAI endpoints may report "not configured" during local smoke tests.
+
+## Routes
+
+- `/`
+- `/pages/dashboard`
+- `/pages/lycuem-course`
+- `/pages/demo-trading`
+- `/pages/demo-trading-terminal`
+- `/pages/paper-ai`
+- `/pages/leaderboard`
+- `/pages/user-stats`
+- `/health`
+
+## Persistence
+
+The app uses MongoDB when `MONGODB_URI` or `MONGO_URI` is set. This is the intended local and production database.
+
+SQLite is now only an explicit local/test fallback. To use it outside `npm test`, set `ALLOW_SQLITE_FALLBACK=true`; otherwise database-backed API routes will return a setup error until `MONGODB_URI` is configured.
+
+Vercel production must use MongoDB via `MONGODB_URI`. SQLite files are not durable in Vercel serverless functions, so local SQLite data will not persist reliably after deploys or function cold starts.
+
+## Security Notes
+
+- `OPENAI_API_KEY` stays server-side through `/api/openai-chat` and `/api/chat`.
+- `/api/paper-secrets` currently exposes Helius/Solana Tracker browser integration keys. Prefer restricted keys and move high-value calls behind server proxies before a larger public launch.
+- Never commit `.env`, local SQLite fallback files, temporary browser profiles, or server logs.

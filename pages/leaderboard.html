@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Top paper traders ranked by simulated P&amp;L. Daily SOL rewards funded by $PAPER creator fees on pump.fun.">
+    <title>paper - Leaderboard</title>
+    <link rel="icon" type="image/png" href="../assets/icons/favicon.png">
+    <link rel="apple-touch-icon" href="../assets/icons/favicon.png">
+    <script src="../scripts/theme.js"></script>
+    <link rel="stylesheet" href="../styles/style.css?v=no-grid-5">
+    <link rel="stylesheet" href="../styles/landing-premium.css?v=payout-tabs-2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../scripts/data-utils.js"></script>
+    <script src="../scripts/wallet-auth.js"></script>
+    <script src="../scripts/wallet-logos.js"></script>
+    <script src="../scripts/wallet-modal.js"></script>
+    <script src="../scripts/wallet-nav.js"></script>
+    <script src="../scripts/leaderboard-sync.js?v=1"></script>
+</head>
+<body class="page-dashboard page-leaderboard leaderboard-live-loading">
+    <header class="landing-header" id="landing-header">
+        <nav class="landing-nav" aria-label="Main">
+            <a href="/pages/dashboard" class="landing-nav__brand landing-nav__brand--back" data-nav-back aria-label="Back">
+                <span class="landing-nav__back" aria-hidden="true">←</span>
+                <img src="../assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+            </a>
+            <div class="landing-nav__actions">
+                <button type="button" class="nav-connect-btn landing-nav__connect nav-metal-pill" id="nav-connect-btn"><span class="nav-metal-pill__label metal-shine-button__label">Connect Wallet</span></button>
+                <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" aria-pressed="false">
+                    <span class="theme-toggle-icon" aria-hidden="true">&#9790;</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        <section class="lp-leaderboard lp-leaderboard--page fade-in-up" aria-label="Top paper traders">
+            <div class="lp-leaderboard__head">
+                <h1>Top paper traders</h1>
+            </div>
+
+            <div class="lp-leaderboard__frame">
+                <div class="lb-view-tabs" role="tablist" aria-label="Reward views">
+                    <button class="lb-view-tab is-active" id="lb-rankings-tab" type="button" role="tab" aria-selected="true" aria-controls="lb-rankings-panel" data-lb-view="rankings">
+                        Rankings
+                    </button>
+                    <button class="lb-view-tab" id="lb-payouts-tab" type="button" role="tab" aria-selected="false" aria-controls="lb-payouts-panel" data-lb-view="payouts">
+                        Payouts <span class="lb-view-tab__count" aria-label="0 payouts">0</span>
+                    </button>
+                </div>
+                <section class="lb-view-panel" id="lb-rankings-panel" role="tabpanel" aria-labelledby="lb-rankings-tab" data-lb-panel="rankings">
+                <div class="lp-leaderboard__table" role="table" aria-label="Full paper trader leaderboard">
+                    <div class="lp-leaderboard__row lp-leaderboard__row--head" role="row">
+                        <span role="columnheader">#</span>
+                        <span role="columnheader">Trader</span>
+                        <span role="columnheader">Trades</span>
+                        <span role="columnheader">Win rate</span>
+                        <span role="columnheader">P&amp;L</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--1" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">1</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> paperalpha</span>
+                        <span class="lp-leaderboard__stat" role="cell">47</span>
+                        <span class="lp-leaderboard__stat" role="cell">71%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+14.2 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--2" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">2</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> solstice</span>
+                        <span class="lp-leaderboard__stat" role="cell">38</span>
+                        <span class="lp-leaderboard__stat" role="cell">68%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+11.6 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--3" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">3</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> memelab</span>
+                        <span class="lp-leaderboard__stat" role="cell">52</span>
+                        <span class="lp-leaderboard__stat" role="cell">64%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+9.8 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--4" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">4</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> curve_reader</span>
+                        <span class="lp-leaderboard__stat" role="cell">29</span>
+                        <span class="lp-leaderboard__stat" role="cell">62%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+7.4 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--5" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">5</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> zero_rug</span>
+                        <span class="lp-leaderboard__stat" role="cell">41</span>
+                        <span class="lp-leaderboard__stat" role="cell">59%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+5.9 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">6</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> potato</span>
+                        <span class="lp-leaderboard__stat" role="cell">33</span>
+                        <span class="lp-leaderboard__stat" role="cell">57%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+4.8 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">7</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> axiomape</span>
+                        <span class="lp-leaderboard__stat" role="cell">26</span>
+                        <span class="lp-leaderboard__stat" role="cell">54%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+3.2 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">8</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> bonkmax</span>
+                        <span class="lp-leaderboard__stat" role="cell">22</span>
+                        <span class="lp-leaderboard__stat" role="cell">52%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+2.5 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">9</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> degenyo</span>
+                        <span class="lp-leaderboard__stat" role="cell">19</span>
+                        <span class="lp-leaderboard__stat" role="cell">50%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+1.9 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">10</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> edge</span>
+                        <span class="lp-leaderboard__stat" role="cell">17</span>
+                        <span class="lp-leaderboard__stat" role="cell">48%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+1.4 SOL</span>
+                    </div>
+                </div>
+                </section>
+                <section class="lb-view-panel lb-payouts" id="lb-payouts-panel" role="tabpanel" aria-labelledby="lb-payouts-tab" data-lb-panel="payouts" hidden>
+                    <div class="lb-payouts__table" role="table" aria-label="Reward payout history">
+                        <div class="lb-payouts__row lb-payouts__row--head" role="row">
+                            <span role="columnheader">Date</span>
+                            <span role="columnheader">Profile paid</span>
+                            <span role="columnheader">Amount</span>
+                            <span role="columnheader">Transaction</span>
+                        </div>
+                        <div class="lb-payouts__empty" role="row">
+                            <div class="lb-payouts__empty-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 7.5h16v11H4z"></path>
+                                    <path d="M7 7.5V5.8A1.8 1.8 0 0 1 8.8 4h6.4A1.8 1.8 0 0 1 17 5.8v1.7"></path>
+                                    <path d="M12 11v4M10 13h4"></path>
+                                </svg>
+                            </div>
+                            <strong>No payouts yet</strong>
+                            <p>Completed rewards will appear here with the paid profile, SOL amount, and a verified Solscan transaction link.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="lb-info-panel" aria-label="How rewards work">
+                <div class="lb-prize-board lb-prize-board--aside" aria-label="Daily SOL rewards">
+                    <div class="lb-prize-board__pool">
+                        <span class="lb-prize-board__label">Daily reward pool</span>
+                        <strong class="lb-prize-board__total" data-reward-pool-total>0.50 SOL</strong>
+                    </div>
+                    <div class="lb-prize-board__podium">
+                        <div class="lb-prize-board__place lb-prize-board__place--1">
+                            <span class="lb-prize-board__rank">1st</span>
+                            <span class="lb-prize-board__amount" data-reward-prize="first">0.30 SOL</span>
+                        </div>
+                        <div class="lb-prize-board__place lb-prize-board__place--2">
+                            <span class="lb-prize-board__rank">2nd</span>
+                            <span class="lb-prize-board__amount" data-reward-prize="second">0.15 SOL</span>
+                        </div>
+                        <div class="lb-prize-board__place lb-prize-board__place--3">
+                            <span class="lb-prize-board__rank">3rd</span>
+                            <span class="lb-prize-board__amount" data-reward-prize="third">0.05 SOL</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lb-info-panel__head">
+                    <h2>How rewards work</h2>
+                </div>
+                <div class="lb-info-panel__grid">
+                    <article class="lb-info-item" data-reward-step data-step="01">
+                        <div class="lb-info-item__card">
+                            <span class="lb-info-item__tag">Reward source</span>
+                            <h3>0.5 SOL base + 45% of rewards</h3>
+                            <p>Every eligible $PAPER trade accrues creator rewards in Pump.fun&apos;s on-chain vaults. The live reward pool reserves 45% for traders while the remaining 55% stays with the project.</p>
+                        </div>
+                    </article>
+                    <article class="lb-info-item" data-reward-step data-step="02">
+                        <div class="lb-info-item__card">
+                            <span class="lb-info-item__tag">Payout method</span>
+                            <h3>Direct SOL transfer</h3>
+                            <p>After each 24h window closes, SOL is sent straight to the connected wallets of the top 3 paper traders.</p>
+                        </div>
+                    </article>
+                    <article class="lb-info-item" data-reward-step data-step="03">
+                        <div class="lb-info-item__card">
+                            <span class="lb-info-item__tag">Eligibility</span>
+                            <h3>Paper trades only</h3>
+                            <p>Rankings use simulated P&amp;L from the paper board. Sybil and abuse checks run before any payout is approved.</p>
+                        </div>
+                    </article>
+                    <article class="lb-info-item" data-reward-step data-step="04">
+                        <div class="lb-info-item__card">
+                            <span class="lb-info-item__tag">Reset</span>
+                            <h3>Every 24 hours</h3>
+                            <p>Scores wipe at midnight UTC. A fresh leaderboard and new reward split open for the next day.</p>
+                        </div>
+                    </article>
+                </div>
+            </aside>
+        </section>
+
+        <div class="dash-dock-wrap fade-in-up delay-1" aria-label="Dashboard modules">
+            <div class="dash-dock-orbit" aria-hidden="true"></div>
+            <nav class="dash-dock" id="dashboard-dock" aria-label="Dashboard dock">
+                <a href="lycuem-course" class="dash-dock__item dash-dock__item--train" data-dock-title="Lessons" data-dock-desc="Open lessons">
+                    <span class="dash-dock__tooltip">lessons</span>
+                    <span class="dash-dock__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img">
+                            <path d="M5 4.5h9.5A3.5 3.5 0 0 1 18 8v11.5H7.5A3.5 3.5 0 0 1 4 16V5.5a1 1 0 0 1 1-1Z"></path>
+                            <path d="M8 8h6M8 11h5M8 14h4"></path>
+                        </svg>
+                    </span>
+                </a>
+                <a href="demo-trading" class="dash-dock__item dash-dock__item--demo" data-dock-title="Paper Trade" data-dock-desc="Practice paper trades">
+                    <span class="dash-dock__tooltip">Paper Trade</span>
+                    <span class="dash-dock__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img">
+                            <path d="M4 17 9 12l4 4 7-9"></path>
+                            <path d="M4 20h16M4 4v16"></path>
+                        </svg>
+                    </span>
+                </a>
+                <a href="paper-ai" class="dash-dock__item dash-dock__item--ai" data-dock-title="paper AI" data-dock-desc="Launch assistant">
+                    <span class="dash-dock__tooltip">paper AI</span>
+                    <span class="dash-dock__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" role="img">
+                                <path d="M12 2l1.4 4.8L18 8l-4.6 1.2L12 14l-1.4-4.8L6 8l4.6-1.2L12 2Z"></path>
+                                <path d="M19 13l.7 2.3L22 16l-2.3.7L19 19l-.7-2.3L16 16l2.3-.7L19 13Z"></path>
+                                <path d="M5 16l.5 1.7L7 18l-1.5.5L5 20l-.5-1.5L3 18l1.5-.5L5 16Z"></path>
+                            </svg>
+                    </span>
+                </a>
+                <a href="/pages/user-stats" class="dash-dock__item dash-dock__item--stats" data-dock-title="Profile" data-dock-desc="View your stats">
+                    <span class="dash-dock__tooltip">Profile</span>
+                    <span class="dash-dock__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" role="img">
+                            <circle cx="12" cy="8" r="4"></circle>
+                            <path d="M5 20a7 7 0 0 1 14 0"></path>
+                        </svg>
+                    </span>
+                </a>
+            </nav>
+        </div>
+    </main>
+
+    <script src="../scripts/interactive-dots.js?v=boxes-2"></script>
+    <script src="../scripts/cursor-utils.js"></script>
+    <script src="../scripts/dashboard.js"></script>
+    <script src="../scripts/leaderboard.js?v=payout-tabs-1"></script>
+    <script src="../scripts/reward-pool.js?v=1"></script>
+    <script src="../scripts/nav-back.js"></script>
+    <script src="/scripts/vercel-analytics.js"></script>
+</body>
+</html>

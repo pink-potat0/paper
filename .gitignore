@@ -3,5 +3,8 @@ node_modules/
 .env.*
 !.env.example
 *.local
+*.log
 scripts/local-secrets.js
 .claude/
+.tmp-chrome-ca/
+data/*.sqlite*

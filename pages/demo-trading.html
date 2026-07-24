@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Lykeion demo trading placeholder page.">
-    <title>Lykeion - Demo Trading</title>
+    <meta name="description" content="paper demo trading placeholder page.">
+    <title>paper - Demo Trading</title>
     <link rel="icon" type="image/png" href="../assets/icons/favicon.png">
     <link rel="apple-touch-icon" href="../assets/icons/favicon.png">
-    <link rel="stylesheet" href="../styles/style.css">
+    <script src="../scripts/theme.js"></script>
+    <link rel="stylesheet" href="../styles/style.css?v=no-grid-5">
+    <link rel="stylesheet" href="../styles/landing-premium.css?v=nav-metal-2">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../scripts/data-utils.js"></script>
+    <script src="../scripts/leaderboard-sync.js?v=1"></script>
     <style>
         @font-face {
             font-family: 'NCLNeovibes Demo';
@@ -19,23 +23,23 @@
             font-style: normal;
             font-display: block;
         }
-        .navbar { display: flex; align-items: center; gap: 16px; }
-        .token-search { position: relative; flex: 1; max-width: 520px; margin: 0 auto; }
-        .token-search input {
+        .landing-nav .token-search { position: relative; width: 100%; max-width: none; margin: 0; min-width: 0; }
+        .landing-nav .token-search input {
             width: 100%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border-default, rgba(255,255,255,0.12));
+            background: var(--glass, rgba(255,255,255,0.04));
             color: inherit;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 11px;
             outline: none;
             transition: border-color 120ms ease, background 120ms ease;
         }
-        .token-search input:focus {
-            border-color: rgba(255,255,255,0.32);
-            background: rgba(255,255,255,0.06);
+        .landing-nav .token-search input:focus {
+            border-color: rgba(var(--accent-rgb), 0.35);
+            background: var(--surface-elevated, rgba(255,255,255,0.06));
         }
         .token-search-results {
             position: absolute;
@@ -73,10 +77,109 @@
         .search-result .sr-mc { font-size: 12px; opacity: 0.85; font-variant-numeric: tabular-nums; }
         .search-result .sr-mint { font-size: 11px; opacity: 0.55; font-family: ui-monospace, Menlo, monospace; }
         .search-empty { padding: 14px; text-align: center; opacity: 0.6; font-size: 13px; }
+        body.terminal-search-open { overflow: hidden; }
+        body.terminal-search-open::after {
+            content: ""; position: fixed; inset: 0; z-index: 1990;
+            background: rgba(0,0,0,.72); backdrop-filter: blur(8px);
+        }
+        body.terminal-search-open > .token-search {
+            position: fixed; z-index: 2000; top: 8vh; left: 50%; right: auto;
+            width: min(860px, calc(100vw - 32px)); min-width: min(860px, calc(100vw - 32px)); max-width: none;
+            transform: translateX(-50%);
+            border: 1px solid #252c36; border-radius: 16px;
+            background: #0b0e13; box-shadow: 0 28px 80px rgba(0,0,0,.58);
+            overflow: hidden;
+        }
+        body.terminal-search-open > .token-search input {
+            width: 100%; height: 64px; box-sizing: border-box;
+            border: 0; border-bottom: 1px solid #222934;
+            border-radius: 0; padding: 0 56px 0 18px; background: #0b0e13;
+            color: #f8fafc; font-size: 20px; font-weight: 500;
+        }
+        body.terminal-search-open > .token-search::after {
+            content: "ESC"; position: absolute; right: 18px; top: 21px;
+            padding: 4px 7px; border: 1px solid #303844; border-radius: 6px;
+            color: #8d99aa; font: 700 9px/1 Inter,sans-serif; pointer-events: none;
+        }
+        body.terminal-search-open .token-search-results {
+            position: static; display: block; width: auto; min-width: 0;
+            max-height: min(68vh, 620px); min-height: 280px;
+            padding: 0 14px 14px; border: 0; border-radius: 0;
+            background: #0b0e13; box-shadow: none; backdrop-filter: none;
+        }
+        .search-discovery { padding: 14px 2px 10px; border-bottom: 1px solid #202630; }
+        .search-discovery-head {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 9px; color: #7f8a99; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .06em;
+        }
+        .search-query-chips { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
+        .search-query-chips::-webkit-scrollbar { display: none; }
+        .search-query-chip {
+            flex: 0 0 auto; border: 1px solid #252c36; border-radius: 999px;
+            padding: 7px 11px; background: #12161d; color: #c6ced9;
+            font: 650 11px/1 Inter,sans-serif; cursor: pointer;
+        }
+        .search-query-chip:hover { border-color: #465161; background: #181e27; }
+        .search-results-label {
+            display: flex; justify-content: space-between; padding: 11px 4px 7px;
+            color: #778291; font-size: 10px; font-weight: 700; text-transform: uppercase;
+        }
+        .search-history-clear {
+            border: 0; padding: 0; background: transparent; color: #7f8a99;
+            font: 700 10px Inter,sans-serif; cursor: pointer;
+        }
+        .search-history-clear:hover { color: #f8fafc; }
+        body.terminal-search-open .search-result {
+            display: grid; grid-template-columns: 48px minmax(0,1fr) auto auto;
+            gap: 11px; min-height: 66px; padding: 8px 10px; border-radius: 8px;
+            border: 1px solid transparent; border-bottom-color: #1e242d;
+        }
+        body.terminal-search-open .search-result:hover {
+            background: #121720; border-color: #313a47;
+        }
+        body.terminal-search-open .search-result img,
+        body.terminal-search-open .search-result .no-img {
+            width: 46px; height: 46px; border-radius: 10px; background: #171d25;
+            border: 1px solid #313a47;
+        }
+        .sr-identity { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+        .sr-title { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+        body.terminal-search-open .search-result .sr-symbol { color: #f8fafc; font-size: 13px; font-weight: 800; }
+        body.terminal-search-open .search-result .sr-name { color: #7f8a99; font-size: 11px; opacity: 1; }
+        body.terminal-search-open .search-result .sr-mint { color: #5f6b7a; font-size: 9px; opacity: 1; }
+        .sr-metric { min-width: 74px; display: grid; align-content: center; gap: 3px; text-align: right; }
+        .sr-metric-label { color: #667181; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+        .sr-metric-value { color: #e5eaf0; font-size: 13px; font-weight: 800; }
+        .sr-metric-value.is-mc { color: #facc15; }
+        [data-theme="light"] body.terminal-search-open > .token-search,
+        [data-theme="light"] body.terminal-search-open > .token-search input,
+        [data-theme="light"] body.terminal-search-open .token-search-results { background: #f8fafc; color: #111827; }
+        [data-theme="light"] body.terminal-search-open .search-result:hover { background: #edf2f7; }
+        [data-theme="light"] body.terminal-search-open .search-result .sr-symbol { color: #111827; }
+        [data-theme="light"] body.terminal-search-open > .token-search {
+            border-color: #d6dde7; box-shadow: 0 28px 80px rgba(15,23,42,.22);
+        }
+        [data-theme="light"] body.terminal-search-open > .token-search input { border-bottom-color: #e0e6ee; }
+        [data-theme="light"] body.terminal-search-open .search-result {
+            border-bottom-color: #e2e7ee;
+        }
+        [data-theme="light"] body.terminal-search-open .search-result .sr-metric-value { color: #334155; }
+        [data-theme="light"] .search-history-clear:hover { color: #111827; }
+        [data-theme="light"] .search-query-chip { background: #edf2f7; color: #334155; border-color: #d3dbe5; }
+        @media (max-width: 640px) {
+            body.terminal-search-open > .token-search {
+                top: 10px; width: calc(100vw - 20px); min-width: calc(100vw - 20px);
+            }
+            body.terminal-search-open .search-result { grid-template-columns: 42px minmax(0,1fr) auto; }
+            body.terminal-search-open .search-result img,
+            body.terminal-search-open .search-result .no-img { width: 40px; height: 40px; }
+            body.terminal-search-open .search-result .sr-volume { display: none; }
+        }
 
         .demo-token-row { min-width: 0; }
         .demo-token-meta { min-width: 0; overflow: hidden; }
-        .demo-token-meta strong {
+        .demo-token-line1 {
             display: flex;
             align-items: baseline;
             gap: 6px;
@@ -98,7 +201,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .demo-token-meta .demo-token-copy {
+        .demo-token-mint {
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -112,52 +215,15 @@
             overflow: hidden;
         }
         @media (max-width: 640px) {
-            .demo-token-meta strong { font-size: 13px; }
-            .demo-token-meta .demo-token-name { font-size: 12px; }
-            body.page-demo-trading .navbar {
-                flex-wrap: wrap;
-                row-gap: 8px;
-                column-gap: 8px;
-                padding: 10px 14px;
-                min-height: 44px;
-            }
-            body.page-demo-trading .nav-logo {
-                font-size: 16px;
-                white-space: nowrap;
-                flex: 0 1 auto;
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                order: 1;
-            }
-            body.page-demo-trading .navbar > div:last-child {
-                margin-left: auto;
-                flex-shrink: 0;
-                order: 2;
-            }
-            body.page-demo-trading .token-search {
-                order: 3;
-                flex: 1 1 100%;
-                margin: 0;
-            }
-            body.page-demo-trading .token-search input {
-                font-size: 12px;
-                padding: 8px 10px;
+            .demo-token-line1 { font-size: 19px; }
+            .demo-token-meta .demo-token-name { font-size: 16px; }
+            body.page-demo-trading .landing-nav .token-search input {
+                font-size: 11px;
+                height: 28px;
             }
             body.page-demo-trading .wallet-hud {
-                padding: 6px 9px;
+                padding: 6px 10px;
                 font-size: 12px;
-                white-space: nowrap;
-            }
-            body.page-demo-trading .demo-board-main {
-                margin-top: 124px;
-            }
-            body.page-demo-trading .demo-mobile-tabs {
-                margin-top: 4px;
-                margin-bottom: 10px;
-            }
-            body.page-demo-trading .demo-tab-btn {
-                font-size: 1.1rem;
             }
         }
 
@@ -192,11 +258,16 @@
 
         .toast-stack {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 50%;
+            left: 50%;
+            right: auto;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
             gap: 8px;
+            width: min(360px, calc(100vw - 32px));
+            max-height: calc(100vh - 32px);
+            overflow: hidden;
             z-index: 9999;
             pointer-events: none;
         }
@@ -208,7 +279,9 @@
             border: 1px solid rgba(255,255,255,0.12);
             font-size: 13px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-            min-width: 220px;
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
             animation: toast-in 180ms ease-out;
         }
         .toast.is-pos { border-color: rgba(74,222,128,0.4); }
@@ -229,13 +302,13 @@
             flex-direction: column;
             gap: 14px;
         }
-        .portfolio-balance-hero {
-            border-radius: 14px;
-            padding: 22px 24px 20px;
-            background: linear-gradient(145deg, #4f46e5 0%, #5b21b6 48%, #6d28d9 100%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 4px 20px rgba(15, 10, 40, 0.35);
-            text-align: left;
+        .portfolio-balance-hero,
+        .portfolio-balance-card {
+            border-radius: 20px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            box-shadow: none;
         }
         .portfolio-hero-label {
             font-size: 11px;
@@ -326,15 +399,15 @@
             font-size: 12px;
             font-weight: 600;
             padding: 7px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(129, 140, 248, 0.45);
-            background: rgba(79, 70, 229, 0.35);
-            color: #e8e8f0;
+            border-radius: 999px;
+            border: 1px solid rgba(var(--accent-rgb), 0.35);
+            background: rgba(var(--accent-rgb), 0.1);
+            color: var(--text-primary);
             cursor: pointer;
             font-family: inherit;
             white-space: nowrap;
         }
-        .portfolio-share-7d-btn:hover { background: rgba(99, 102, 241, 0.45); }
+        .portfolio-share-7d-btn:hover { background: rgba(var(--accent-rgb), 0.18); }
         .demo-portfolio-section-title {
             margin: 12px 14px 6px; font-size: 10px;
             text-transform: uppercase; letter-spacing: 0.6px;
@@ -343,7 +416,16 @@
         .portfolio-history-list {
             max-height: 220px; overflow-y: auto;
             padding: 0 8px 12px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(91,105,124,.7) transparent;
         }
+        .portfolio-history-list::-webkit-scrollbar { width: 6px; }
+        .portfolio-history-list::-webkit-scrollbar-track { background: transparent; }
+        .portfolio-history-list::-webkit-scrollbar-thumb {
+            border-radius: 999px;
+            background: rgba(91,105,124,.7);
+        }
+        .portfolio-history-list::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
         .portfolio-hist-row {
             display: flex; justify-content: space-between; align-items: flex-start;
             gap: 10px; padding: 8px 6px;
@@ -351,6 +433,10 @@
             font-size: 12px;
         }
         .portfolio-hist-row .ph-main { min-width: 0; line-height: 1.4; }
+        .portfolio-hist-row .ph-token-name {
+            margin-left: 5px; color: rgba(255,255,255,.5);
+            font-size: 11px; font-weight: 500;
+        }
         .portfolio-hist-row .ph-age { opacity: 0.5; font-size: 10.5px; white-space: nowrap; }
         .portfolio-hist-row .ph-pnl { font-variant-numeric: tabular-nums; font-weight: 600; margin-left: 6px; }
         .portfolio-hist-row .ph-pnl.is-pos { color: #4ade80; }
@@ -367,13 +453,14 @@
             font-weight: 600;
             padding: 5px 10px;
             border-radius: 8px;
-            border: 1px solid rgba(129, 140, 248, 0.45);
-            background: rgba(79, 70, 229, 0.35);
-            color: #e8e8f0;
+            border: 1px solid #354151;
+            background: #202733;
+            color: #f7f9fc;
             cursor: pointer;
             white-space: nowrap;
             font-family: inherit;
         }
+        .portfolio-hist-pnl-card:hover { border-color: #48e58f; background: #29323f; }
         .portfolio-hist-pnl-card:hover { background: rgba(99, 102, 241, 0.45); }
 
         .pnl-card-modal {
@@ -519,6 +606,232 @@
         .portfolio-modal-dialog .portfolio-history-list {
             max-height: min(420px, 42vh) !important;
         }
+        .page-demo-trading .demo-board-column,
+        .page-demo-trading .demo-token-row,
+        .page-demo-trading .demo-token-buy { box-shadow: none !important; }
+        .page-demo-trading .demo-token-row:hover { background: #0e131a !important; transform: none !important; }
+        .page-demo-trading .demo-board-title { font-size: 13px; font-weight: 750; letter-spacing: .01em; }
+        .page-demo-trading .demo-token-ticker { color: rgba(255,255,255,.96); font-weight: 750; }
+        .page-demo-trading .demo-token-name { color: rgba(255,255,255,.72); }
+        .page-demo-trading .demo-token-age,
+        .page-demo-trading .demo-token-mint { color: rgba(255,255,255,.64); }
+        .page-demo-trading .demo-board-columns { gap: 8px; }
+        .page-demo-trading .demo-board-main {
+            width: calc(100% - 8px);
+            max-width: 1720px;
+            margin-top: calc(var(--landing-header-clearance, 108px) + 8px);
+            padding: 0 0 8px;
+            height: calc(100dvh - var(--landing-header-clearance, 108px) - 12px);
+        }
+        .page-demo-trading .demo-board-column {
+            border-radius: 10px;
+            border-color: #1d242d;
+            background: #07090c;
+        }
+        .page-demo-trading .demo-board-head {
+            min-height: 48px;
+            box-sizing: border-box;
+            padding: 9px 11px;
+            gap: 10px;
+            background: #0b0e13;
+            border-bottom-color: #1d242d;
+        }
+        .demo-board-heading { display: flex; align-items: center; gap: 7px; min-width: 0; }
+        .page-demo-trading .demo-board-title { font-size: 14px; font-weight: 800; }
+        .demo-board-count {
+            min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,.06); color: rgba(255,255,255,.54);
+            font: 700 9px/1 Inter,sans-serif;
+        }
+        .page-demo-trading .demo-token-list { padding: 0; }
+        .page-demo-trading .demo-token-row {
+            grid-template-columns: 64px minmax(0,1fr) minmax(96px, 116px);
+            gap: 9px 10px; min-height: 110px; box-sizing: border-box;
+            padding: 12px 10px; align-items: center; border-left: 0;
+            border-bottom-color: rgba(255,255,255,.045);
+        }
+        .page-demo-trading .demo-token-identity { width: 64px; gap: 6px; }
+        .page-demo-trading .demo-token-icon {
+            width: 62px; height: 62px; border-radius: 12px;
+            border: 1px solid #303946;
+            background: linear-gradient(145deg, #141922, #090c11);
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #d8dee8; font: 800 16px/1 Inter,sans-serif;
+            text-transform: uppercase; letter-spacing: -.04em;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.025);
+        }
+        .page-demo-trading .demo-token-mint { font-size: 9px; color: rgba(255,255,255,.42); }
+        .page-demo-trading .demo-token-meta { gap: 7px; align-self: stretch; justify-content: center; }
+        .page-demo-trading .demo-token-line1 { gap: 6px; align-items: center; }
+        .page-demo-trading .demo-token-ticker { font-size: 15px; }
+        .page-demo-trading .demo-token-name { font-size: 13px; color: rgba(255,255,255,.58); }
+        .page-demo-trading .demo-token-line2 { gap: 6px; flex-wrap: nowrap; overflow: hidden; }
+        .page-demo-trading .demo-token-age { font-size: 13px; color: #9aa7b8; }
+        .page-demo-trading .demo-token-tags { gap: 3px; flex-wrap: nowrap; }
+        .page-demo-trading .demo-token-tag {
+            width: 18px; height: 18px; min-height: 18px; border: 0;
+            border-radius: 5px; background: transparent; color: #9aa7b8;
+        }
+        .page-demo-trading .demo-token-tag:hover,
+        .page-demo-trading .demo-token-tag--pump:hover { color: #48e58f; background: rgba(72,229,143,.08); }
+        .page-demo-trading .demo-tag-icon { width: 11px; height: 11px; }
+        .page-demo-trading .demo-token-stats {
+            gap: 6px 10px; margin-top: 1px; font-size: 11px; color: rgba(255,255,255,.5);
+        }
+        .page-demo-trading .demo-token-stat strong { color: rgba(255,255,255,.72); }
+        .page-demo-trading .demo-token-side {
+            align-self: stretch; justify-content: flex-end; gap: 13px; width: 100%;
+        }
+        .page-demo-trading .demo-token-cap {
+            width: 100%; flex-direction: row; justify-content: flex-end; gap: 7px;
+        }
+        .page-demo-trading .demo-cap-mc,
+        .page-demo-trading .demo-cap-vol { font-size: 14px; font-weight: 750; }
+        .page-demo-trading .demo-cap-vol { color: rgba(255,255,255,.78); }
+        .page-demo-trading .demo-cap-mc { color: #facc15; font-size: 17px; font-weight: 850; }
+        .page-demo-trading .demo-token-buy {
+            position: relative; isolation: isolate; overflow: hidden;
+            width: 100%; min-width: 0; min-height: 40px; padding: 0 10px;
+            border: 1px solid rgba(255,255,255,.78); border-radius: 8px; color: #090a0d;
+            background:
+                radial-gradient(120% 160% at 18% 0%, rgba(255,255,255,.98), transparent 48%),
+                radial-gradient(100% 140% at 85% 100%, rgba(255,255,255,.72), transparent 54%),
+                linear-gradient(180deg, rgba(252,254,255,.96) 0%, rgba(207,216,225,.94) 52%, rgba(244,247,250,.96) 100%) !important;
+            font-size: 13px; font-weight: 800;
+            box-shadow: inset 0 1px #fff, inset 0 -1px rgba(31,41,55,.3), 0 0 0 1px rgba(31,41,55,.18), 0 8px 18px rgba(0,0,0,.26) !important;
+            transition: transform .12s ease, box-shadow .12s ease, background .12s ease;
+        }
+        .page-demo-trading .demo-token-buy::before,
+        .page-demo-trading .demo-token-buy::after {
+            content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+        }
+        .page-demo-trading .demo-token-buy::before {
+            inset: 1px; z-index: 0;
+            background: linear-gradient(110deg, transparent 0 34%, rgba(255,255,255,.72) 46%, transparent 58% 100%);
+            mix-blend-mode: screen; opacity: .5; transform: translateX(-28%);
+            transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+        }
+        .page-demo-trading .demo-token-buy::after {
+            z-index: 1;
+            background: linear-gradient(180deg, rgba(255,255,255,.52), transparent 45%);
+            opacity: .42; mix-blend-mode: screen; transform: none;
+        }
+        .page-demo-trading .demo-buy-label {
+            position: relative; z-index: 2; color: #090a0d;
+            text-shadow: 0 1px rgba(255,255,255,.82); pointer-events: none;
+        }
+        .page-demo-trading .demo-token-buy:hover {
+            filter: contrast(1.06) brightness(1.04) !important;
+            border-color: #fff;
+            box-shadow: inset 0 1px #fff, inset 0 -1px rgba(31,41,55,.34), 0 0 0 1px rgba(255,255,255,.16), 0 12px 26px rgba(0,0,0,.34) !important;
+            transform: translateY(-1px);
+        }
+        .page-demo-trading .demo-token-buy:hover::before { opacity: 1; transform: translateX(18%); }
+        .page-demo-trading .demo-token-list {
+            scrollbar-color: #4b5563 transparent;
+        }
+        .page-demo-trading .demo-token-list::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 999px;
+        }
+        [data-theme="light"] .page-demo-trading .demo-board-column {
+            background: #f8fafc;
+            border-color: #cfd7e2;
+            box-shadow: 0 8px 24px rgba(15,23,42,.06) !important;
+        }
+        [data-theme="light"] .page-demo-trading .demo-board-head {
+            background: #eef2f7;
+            border-bottom-color: #cfd7e2;
+        }
+        [data-theme="light"] .page-demo-trading .demo-board-title {
+            color: #111827;
+        }
+        [data-theme="light"] .page-demo-trading .demo-board-count {
+            background: #dde4ed;
+            color: #475569;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-row {
+            background: rgba(255,255,255,.72);
+            border-bottom-color: #dde3eb;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-row:hover {
+            background: #f1f5f9 !important;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-ticker {
+            color: #111827;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-name {
+            color: #64748b;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-age {
+            color: #2563eb;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-mint {
+            color: #64748b;
+        }
+        [data-theme="light"] .page-demo-trading .demo-cap-vol {
+            color: #475569;
+        }
+        [data-theme="light"] .page-demo-trading .demo-cap-mc {
+            color: #d97706;
+        }
+        [data-theme="light"] .page-demo-trading span.demo-token-icon {
+            color: #334155;
+            border-color: #b8c3d1;
+            background: linear-gradient(145deg, #eef2f7, #dfe6ee);
+        }
+        [data-theme="light"] .page-demo-trading img.demo-token-icon {
+            border-color: #aeb9c8;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-tag {
+            color: #64748b;
+            background: #edf1f6;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-tag:hover,
+        [data-theme="light"] .page-demo-trading .demo-token-tag--pump:hover {
+            color: #0f172a;
+            background: #dfe6ee;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-list {
+            scrollbar-color: #94a3b8 transparent;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-list::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+        }
+        [data-theme="light"] .page-demo-trading .demo-token-buy {
+            border-color: #aeb8c4;
+            box-shadow: inset 0 1px #fff, inset 0 -1px rgba(71,85,105,.22), 0 5px 12px rgba(15,23,42,.14) !important;
+        }
+        @media (max-width: 1100px) and (min-width: 901px) {
+            .page-demo-trading .demo-token-row { grid-template-columns: 54px minmax(0,1fr) 92px; padding: 9px 7px; gap: 7px; }
+            .page-demo-trading .demo-token-identity { width: 54px; }
+            .page-demo-trading .demo-token-icon { width: 50px; height: 50px; }
+            .page-demo-trading .demo-token-side { width: 92px; }
+            .page-demo-trading .demo-token-stats { gap: 4px; }
+        }
+        @media (max-width: 900px) {
+            .page-demo-trading .demo-board-main { width: calc(100% - 20px); }
+            .page-demo-trading .demo-board-head { display: flex; }
+            .page-demo-trading .demo-board-title { display: block; }
+            .page-demo-trading .demo-token-row { grid-template-columns: 66px minmax(0,1fr) 112px; }
+            .page-demo-trading .demo-token-side { width: 112px; }
+        }
+        @media (max-width: 520px) {
+            .page-demo-trading .demo-token-row { grid-template-columns: 54px minmax(0,1fr) 86px; padding: 9px 7px; gap: 7px; }
+            .page-demo-trading .demo-token-identity { width: 54px; }
+            .page-demo-trading .demo-token-icon { width: 50px; height: 50px; }
+            .page-demo-trading .demo-token-side { width: 86px; }
+            .page-demo-trading .demo-token-name { display: none; }
+            .page-demo-trading .demo-token-stats { max-height: 25px; overflow: hidden; }
+        }
+        .demo-token-stats { display: flex; gap: 6px 10px; flex-wrap: wrap; margin-top: 1px; color: rgba(255,255,255,.5); font-size: 11px; }
+        .demo-token-stat strong { color: rgba(255,255,255,.72); font-weight: 650; }
+        .empty-state { display: flex; align-items: center; gap: 8px; }
+        .empty-state button { border: 0; background: transparent; color: #93c5fd; font: 700 11px Inter,sans-serif; cursor: pointer; padding: 2px; }
+        .demo-token-row.is-skeleton { pointer-events: none; }
+        .demo-token-row.is-skeleton > * { animation: terminal-pulse 1.4s ease-in-out infinite; }
+        @keyframes terminal-pulse { 50% { opacity: .38; } }
         .positions-list { overflow-y: auto; flex: 1; }
         .position-item {
             display: grid; grid-template-columns: 1fr auto; gap: 4px 8px;
@@ -533,42 +846,72 @@
         .position-item .pi-meta { font-size: 11px; opacity: 0.55; grid-column: 1 / 3; }
 
     </style>
+    <link rel="stylesheet" href="../styles/portfolio-mini.css?v=1">
 </head>
 <body class="page-demo-trading">
-    <div class="cursor-glow"></div>
-    <div class="background-pattern"></div>
+    <header class="landing-header" id="landing-header">
+        <nav class="landing-nav landing-nav--demo" aria-label="Main">
+            <a href="/pages/dashboard" class="landing-nav__brand landing-nav__brand--back" aria-label="Back to dashboard">
+                <span class="landing-nav__back" aria-hidden="true">←</span>
+                <img src="../assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+            </a>
+            <div class="landing-nav__search token-search" role="search">
+                <input id="token-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search…" />
+                <div id="token-search-results" class="token-search-results" hidden></div>
+            </div>
+            <div class="landing-nav__actions">
+                <button type="button" class="demo-wallet-pill wallet-hud wallet-hud--trigger nav-metal-pill" id="wh-positions-btn" title="Open demo portfolio" aria-expanded="false" aria-controls="positions-panel">
+                    <span class="wh-bal nav-metal-pill__label" id="wh-bal">5.000 SOL</span>
+                </button>
+                <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" title="Switch color theme" aria-pressed="false">
+                    <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+                </button>
+            </div>
+        </nav>
+    </header>
 
-    <nav class="navbar">
-        <span class="nav-logo">Lykeion Terminal</span>
-        <div class="token-search" role="search">
-            <input id="token-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Search pump.fun tokens by name, symbol or CA..." />
-            <div id="token-search-results" class="token-search-results" hidden></div>
-        </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <button type="button" class="wallet-hud wallet-hud--trigger" id="wh-positions-btn" title="Open demo portfolio" aria-expanded="false" aria-controls="positions-panel">
-                <span class="wh-bal" id="wh-bal">5.000 SOL</span>
-            </button>
-            <a href="https://x.com/_ppotat0"><img src="../assets/icons/icons8-x-50.png" alt="Close" class="x-icon"></a>
-        </div>
-    </nav>
-
-    
     <div class="toast-stack" id="toast-stack"></div>
 
     <div class="portfolio-modal-root" id="positions-panel" hidden>
         <button type="button" class="portfolio-modal-backdrop" id="portfolio-modal-backdrop" aria-label="Close portfolio"></button>
         <div class="portfolio-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="portfolio-modal-title">
             <header>
-                <span id="portfolio-modal-title">Demo portfolio</span>
+                <span id="portfolio-modal-title">Portfolio</span>
                 <button type="button" id="positions-close" aria-label="Close">×</button>
             </header>
             <div class="demo-portfolio-scroll">
                 <div class="demo-portfolio-summary">
-                    <div class="portfolio-balance-hero">
-                        <div class="portfolio-hero-label">Portfolio</div>
-                        <div class="portfolio-hero-usd" id="portfolio-bal-usd">$0.00</div>
-                        <div class="portfolio-hero-sol" id="portfolio-bal-summary">0.000000 SOL</div>
-                        <div class="portfolio-hero-hint">Demo balance · USD ≈ spot SOL</div>
+                    <div class="portfolio-balance-card">
+                        <div class="portfolio-balance-top">
+                            <div>
+                                <div class="portfolio-balance-label">
+                                    Total Balance
+                                    <button type="button" class="eye-toggle" id="portfolio-bal-toggle" aria-label="Toggle balance visibility">👁</button>
+                                </div>
+                                <div class="portfolio-balance-usd" id="portfolio-bal-usd">$0.00</div>
+                                <div class="portfolio-balance-sol" id="portfolio-bal-summary">0.000000 SOL</div>
+                                <div class="portfolio-change-pill" id="portfolio-change-pill">+0.000 SOL</div>
+                            </div>
+                            <div class="portfolio-time-tabs" role="tablist" aria-label="Chart time range">
+                                <button type="button" class="portfolio-time-tab" data-range="1h">1H</button>
+                                <button type="button" class="portfolio-time-tab" data-range="1d">1D</button>
+                                <button type="button" class="portfolio-time-tab is-active" data-range="1w">1W</button>
+                                <button type="button" class="portfolio-time-tab" data-range="1m">1M</button>
+                                <button type="button" class="portfolio-time-tab" data-range="1y">1Y</button>
+                            </div>
+                        </div>
+                        <div class="portfolio-chart-wrap" aria-hidden="true">
+                            <svg viewBox="0 0 400 120" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="portfolioChartGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="rgba(52,211,153,0.25)"/>
+                                        <stop offset="100%" stop-color="rgba(52,211,153,0)"/>
+                                    </linearGradient>
+                                </defs>
+                                <path class="portfolio-chart-area" id="portfolio-chart-area" d=""/>
+                                <path class="portfolio-chart-line" id="portfolio-chart-line" d=""/>
+                            </svg>
+                        </div>
                     </div>
                     <div class="demo-portfolio-stats-secondary">
                         <div class="demo-portfolio-summary-row">
@@ -598,84 +941,58 @@
     </div>
 
     <main class="demo-board-main">
-        <div class="demo-mobile-tabs" role="tablist" aria-label="Demo board tabs">
-            <button class="demo-tab-btn is-active" data-tab-target="new" role="tab" aria-selected="true">new</button>
-            <button class="demo-tab-btn" data-tab-target="soon" role="tab" aria-selected="false">soon</button>
-            <button class="demo-tab-btn" data-tab-target="migrated" role="tab" aria-selected="false">migrated</button>
+        <div class="demo-mobile-tabs" role="tablist" aria-label="Board columns">
+            <button class="demo-tab-btn is-active" data-tab-target="new" role="tab" title="Recently created Pump.fun tokens" aria-selected="true">New</button>
+            <button class="demo-tab-btn" data-tab-target="soon" role="tab" title="Tokens nearing bonding-curve completion" aria-selected="false">Soon</button>
+            <button class="demo-tab-btn" data-tab-target="migrated" role="tab" title="Tokens migrated to PumpSwap" aria-selected="false">Migrated</button>
         </div>
         <div class="demo-board-columns">
             <section class="demo-board-column is-active" data-tab="new">
                 <div class="demo-board-head">
-                    <h2 class="demo-board-title">new</h2>
-                    <div class="lp-filter" data-lp-filter="new" role="group" aria-label="Filter by launchpad">
-                        <button type="button" class="lp-chip is-active" data-lp="pump" title="Pump.fun">💊</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bonk" title="LetsBonk">🐶</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bags" title="Bags">💰</button>
-                    </div>
+                    <div class="demo-board-heading"><h2 class="demo-board-title">New</h2><span class="demo-board-count" data-count-for="new">0</span></div>
                 </div>
                 <div class="demo-token-list">
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
+                    <article class="demo-token-row is-skeleton"><div class="demo-token-identity"><span class="demo-token-icon"></span><span class="demo-token-mint">····</span></div><div class="demo-token-meta"><div class="demo-token-line1"><span class="demo-token-ticker">$···</span><span class="demo-token-name">Loading…</span></div><div class="demo-token-line2"><span class="demo-token-age">--</span></div></div><div class="demo-token-side"><div class="demo-token-cap"><span class="demo-cap-vol">V --</span><span class="demo-cap-mc">MC --</span></div><button class="demo-token-buy" type="button" disabled><span class="demo-buy-label">1 SOL</span></button></div></article>
                 </div>
             </section>
 
             <section class="demo-board-column" data-tab="soon">
                 <div class="demo-board-head">
-                    <h2 class="demo-board-title">soon</h2>
-                    <div class="lp-filter" data-lp-filter="soon" role="group" aria-label="Filter by launchpad">
-                        <button type="button" class="lp-chip is-active" data-lp="pump" title="Pump.fun">💊</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bonk" title="LetsBonk">🐶</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bags" title="Bags">💰</button>
-                    </div>
+                    <div class="demo-board-heading"><h2 class="demo-board-title">Soon</h2><span class="demo-board-count" data-count-for="soon">0</span></div>
                 </div>
                 <div class="demo-token-list">
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
+                    <article class="demo-token-row is-skeleton"><div class="demo-token-identity"><span class="demo-token-icon"></span><span class="demo-token-mint">····</span></div><div class="demo-token-meta"><div class="demo-token-line1"><span class="demo-token-ticker">$···</span><span class="demo-token-name">Loading…</span></div><div class="demo-token-line2"><span class="demo-token-age">--</span></div></div><div class="demo-token-side"><div class="demo-token-cap"><span class="demo-cap-vol">V --</span><span class="demo-cap-mc">MC --</span></div><button class="demo-token-buy" type="button" disabled><span class="demo-buy-label">1 SOL</span></button></div></article>
                 </div>
             </section>
 
             <section class="demo-board-column" data-tab="migrated">
                 <div class="demo-board-head">
-                    <h2 class="demo-board-title">migrated</h2>
-                    <div class="lp-filter" data-lp-filter="migrated" role="group" aria-label="Filter by launchpad">
-                        <button type="button" class="lp-chip is-active" data-lp="pump" title="Pump.fun">💊</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bonk" title="LetsBonk">🐶</button>
-                        <button type="button" class="lp-chip is-active" data-lp="bags" title="Bags">💰</button>
-                    </div>
+                    <div class="demo-board-heading"><h2 class="demo-board-title">Migrated</h2><span class="demo-board-count" data-count-for="migrated">0</span></div>
                 </div>
                 <div class="demo-token-list">
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
-                    <article class="demo-token-row"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong>TICKER tokenname</strong><span>token links</span></div><div class="demo-token-cap">v1K mc8K</div><button class="demo-token-buy">1 SOL</button></article>
+                    <article class="demo-token-row is-skeleton"><div class="demo-token-identity"><span class="demo-token-icon"></span><span class="demo-token-mint">····</span></div><div class="demo-token-meta"><div class="demo-token-line1"><span class="demo-token-ticker">$···</span><span class="demo-token-name">Loading…</span></div><div class="demo-token-line2"><span class="demo-token-age">--</span></div></div><div class="demo-token-side"><div class="demo-token-cap"><span class="demo-cap-vol">V --</span><span class="demo-cap-mc">MC --</span></div><button class="demo-token-buy" type="button" disabled><span class="demo-buy-label">1 SOL</span></button></div></article>
                 </div>
             </section>
         </div>
     </main>
 
-    <a href="dashboard" class="floating-back-btn" title="Go back">
-        <span>←</span>
-    </a>
-
+    <script>
+        (function () {
+            var header = document.getElementById('landing-header');
+            if (header) {
+                window.addEventListener('scroll', function () {
+                    header.classList.toggle('is-scrolled', window.scrollY > 24);
+                }, { passive: true });
+            }
+        })();
+    </script>
     <script src="../scripts/bootstrap-secrets.js"></script>
     <script src="../scripts/bootstrap-secrets-fetch.js"></script>
+    <script src="../scripts/interactive-dots.js?v=boxes-2"></script>
     <script src="../scripts/cursor-utils.js"></script>
     <script>
         (async () => {
-            await (window.__lykeionSecretsPromise || Promise.resolve());
+            await (window.__paperSecretsPromise || Promise.resolve());
             const AGE_REFRESH_MS = 1000;
             const SOL_PRICE_REFRESH_MS = 60 * 1000;
             const MIN_MC_USD = 3800;
@@ -687,13 +1004,13 @@
             const SOON_MAX_AGE_SECONDS = 24 * 60 * 60;
             const MIN_MIGRATED_MC_USD = 10000;
             const MIN_MIGRATED_VOL_USD = 15000;
-            const MIGRATED_MAX_AGE_SECONDS = 72 * 60 * 60;
+            const MIGRATED_MAX_AGE_SECONDS = 3 * 24 * 60 * 60;
             const MIGRATED_STALE_SECONDS = 15 * 60;
             const MIGRATED_FRESH_GRACE_SECONDS = 5 * 60;
             const MAX_VISIBLE_ROWS = 24;
             const PUMPPORTAL_WS_URL = 'wss://pumpportal.fun/api/data';
             function getSolanaTrackerKey() {
-                return String((typeof window !== 'undefined' && window.LYKEION_SECRETS && window.LYKEION_SECRETS.solanaTracker) || '').trim();
+                return String((typeof window !== 'undefined' && window.PAPER_SECRETS && window.PAPER_SECRETS.solanaTracker) || '').trim();
             }
             const SOLANA_TRACKER_GRADUATED_URLS = [
                 'https://data.solanatracker.io/tokens/multi/graduated',
@@ -711,36 +1028,50 @@
             const newColumnList = document.querySelector('.demo-board-column[data-tab="new"] .demo-token-list');
             const soonColumnList = document.querySelector('.demo-board-column[data-tab="soon"] .demo-token-list');
             const migratedColumnList = document.querySelector('.demo-board-column[data-tab="migrated"] .demo-token-list');
+            const feedStatusEl = document.getElementById('feed-status');
+            const feedStatusLabelEl = document.getElementById('feed-status-label');
+            const feedStatusMetaEl = document.getElementById('feed-status-meta');
+            const feedRetryEl = document.getElementById('feed-retry');
+            const TERMINAL_UI_KEY = 'paper.terminal.ui.v2';
+            let terminalUi = { activeTab: 'new', scroll: {} };
+            try { terminalUi = { ...terminalUi, ...JSON.parse(sessionStorage.getItem(TERMINAL_UI_KEY) || '{}') }; } catch {}
 
             const tokenMap = new Map();
             const subscribedMints = new Set();
             const metadataFetched = new Set();
-            // Launchpad filter state — per column, tokens from checked launchpads are shown
-            const LAUNCHPADS = ['pump', 'bonk', 'bags'];
-            const LAUNCHPAD_META = {
-                pump: { emoji: '💊', label: 'PUMP', coinUrl: (m) => m ? `https://pump.fun/coin/${m}` : 'https://pump.fun' },
-                bonk: { emoji: '🐶', label: 'BONK', coinUrl: (m) => m ? `https://letsbonk.fun/token/${m}` : 'https://letsbonk.fun' },
-                bags: { emoji: '💰', label: 'BAGS', coinUrl: (m) => m ? `https://bags.fm/${m}` : 'https://bags.fm' }
-            };
-            const launchpadFilters = {
-                new: new Set(LAUNCHPADS),
-                soon: new Set(LAUNCHPADS),
-                migrated: new Set(LAUNCHPADS)
-            };
+            const metadataRetryCount = new Map();
+            const PUMP_LAUNCHPAD = 'pump';
+            const PUMP_COIN_URL = (m) => m ? `https://pump.fun/coin/${m}` : 'https://pump.fun';
             function detectLaunchpadFromMarket(market) {
                 const m = String(market || '').toLowerCase();
                 if (!m) return '';
-                if (m.includes('pump')) return 'pump';
-                if (m.includes('bonk') || m.includes('launchlab') || m.includes('letsbonk')) return 'bonk';
-                if (m.includes('bags')) return 'bags';
-                if (m.includes('raydium')) return 'pump'; // pump graduates to raydium/pumpswap
+                if (m.includes('pump') || m.includes('raydium')) return PUMP_LAUNCHPAD;
                 return '';
+            }
+            function isPumpToken(token) {
+                if (!token) return false;
+                const lp = token.launchpad || PUMP_LAUNCHPAD;
+                return lp === PUMP_LAUNCHPAD;
             }
             let solPriceUsd = 170;
             let ws = null;
             let wsReconnectTimer = null;
             let wsReconnectAttempts = 0;
+            let suppressNextReconnect = false;
             let renderScheduled = false;
+            let lastFeedUpdateMs = 0;
+
+            function saveTerminalUi() {
+                try { sessionStorage.setItem(TERMINAL_UI_KEY, JSON.stringify(terminalUi)); } catch {}
+            }
+
+            function setFeedStatus(state, detail) {
+                const labels = { live: 'Live', delayed: 'Delayed', disconnected: 'Disconnected' };
+                if (feedStatusEl) feedStatusEl.dataset.state = state;
+                if (feedStatusLabelEl) feedStatusLabelEl.textContent = labels[state] || 'Connecting';
+                if (feedStatusMetaEl) feedStatusMetaEl.textContent = `PumpPortal · ${detail}`;
+                if (feedRetryEl) feedRetryEl.hidden = state === 'live';
+            }
 
             function escapeHtml(value) {
                 return String(value || '')
@@ -799,7 +1130,17 @@
                 return formatAgeFromMs(parseCreatedMs(createdTimestamp));
             }
 
-            function buildTag(label, url) {
+            function socialTagIcon(type) {
+                const icons = {
+                    x: '<svg class="demo-tag-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+                    web: '<svg class="demo-tag-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.75" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path fill="none" stroke="currentColor" stroke-width="1.75" d="M2 12h20M12 2c2.8 3.1 4 6.8 4 10s-1.2 6.9-4 10M12 2c-2.8 3.1-4 6.8-4 10s1.2 6.9 4 10"/></svg>',
+                    telegram: '<svg class="demo-tag-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.94 4.66a1.4 1.4 0 0 0-1.43-.22L3.07 11.34c-1.04.43-1.03 1.92.02 2.33l4.46 1.7 1.7 4.46c.4 1.05 1.9 1.06 2.33.02l6.9-17.44a1.4 1.4 0 0 0-.24-1.45zM9.4 14.6l7.52-7.1-5.9 8.2-.44-1.1z"/></svg>',
+                    pump: '<svg class="demo-tag-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1.75"/><line x1="12" y1="9" x2="12" y2="15" stroke="currentColor" stroke-width="1.75"/></svg>'
+                };
+                return icons[type] || '';
+            }
+
+            function buildSocialTag(type, url, title) {
                 const safeUrl = String(url || '').trim();
                 if (!safeUrl) return '';
                 let normalized = safeUrl;
@@ -811,12 +1152,21 @@
                     return '';
                 }
                 const href = escapeHtml(normalized);
-                return `<a class="demo-token-tag" href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                const label = escapeHtml(title);
+                const icon = socialTagIcon(type);
+                return `<a class="demo-token-tag demo-token-tag--icon demo-token-tag--${type}" href="${href}" target="_blank" rel="noopener noreferrer" title="${label}" aria-label="${label}">${icon}</a>`;
+            }
+
+            function buildPumpTag(mint) {
+                const href = escapeHtml(PUMP_COIN_URL(mint || ''));
+                const icon = socialTagIcon('pump');
+                return `<a class="demo-token-tag demo-token-tag--icon demo-token-tag--lp demo-token-tag--pump" href="${href}" target="_blank" rel="noopener noreferrer" title="Pump.fun" aria-label="Pump.fun">${icon}</a>`;
             }
 
             function buildTokenRowHtml(token) {
                 const symbolRaw = String(token?.symbol || 'TICKER').replace(/\s+/g, '');
                 const symbol = escapeHtml(symbolRaw.startsWith('$') ? symbolRaw : `$${symbolRaw}`);
+                const symbolInitials = escapeHtml(symbolRaw.replace(/^\$/, '').slice(0, 2).toUpperCase() || '?');
                 const name = escapeHtml(token?.name || 'tokenname');
                 const mint = escapeHtml(token?.mint || '');
                 const mcRaw = Number(token?.usd_market_cap || token?.market_cap || 0);
@@ -824,36 +1174,48 @@
                 const volSource = Number(token?.volume_24h || token?.volume || token?.total_volume || 0);
                 const volText = volSource > 0 ? `$${formatCompactNumber(volSource)}` : 'N/A';
                 const iconUrl = token?.image_uri ? escapeHtml(ipfsToHttp(token.image_uri)) : '';
-                const lp = token?.launchpad && LAUNCHPAD_META[token.launchpad] ? token.launchpad : 'pump';
-                const lpMeta = LAUNCHPAD_META[lp];
-                const href = lpMeta.coinUrl(token?.mint || '');
                 const createdMs = parseCreatedMs(token?.created_timestamp);
                 const ageText = escapeHtml(formatAgeFromMs(createdMs));
+                const phase = escapeHtml(token?._phase || 'new');
+                const imageFallbacks = imageCandidates(token?.image_uri).filter((url) => url !== iconUrl);
                 const socialTags = [
-                    buildTag('TW', token?.twitter),
-                    buildTag('WEB', token?.website),
-                    buildTag('TG', token?.telegram),
-                    `<a class="demo-token-tag demo-token-tag--lp demo-token-tag--${lp}" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(lpMeta.label)}"><span class="lp-tag-emoji">${lpMeta.emoji}</span> ${escapeHtml(lpMeta.label)}</a>`
+                    buildSocialTag('x', token?.twitter, 'X (Twitter)'),
+                    buildSocialTag('web', token?.website, 'Website'),
+                    buildSocialTag('telegram', token?.telegram, 'Telegram'),
+                    buildPumpTag(token?.mint || '')
                 ].filter(Boolean).join('');
-                const copyButton = mint
-                    ? `<button class="demo-token-copy" type="button" data-ca="${mint}" title="Copy CA">${mint.slice(0, 6)}...${mint.slice(-4)}</button>`
+                const shortMint = mint ? `${mint.slice(0, 4)}..${mint.slice(-4)}` : '';
+                const mintButton = mint
+                    ? `<button class="demo-token-mint demo-token-copy" type="button" data-ca="${mint}" title="Copy contract">${shortMint}</button>`
                     : '';
 
                 const mcRawAttr = mcRaw > 0 ? mcRaw : 0;
                 return `
-                    <article class="demo-token-row" ${createdMs ? `data-created-ms="${createdMs}"` : ''} ${mint ? `data-mint="${mint}"` : ''} data-mc-usd="${mcRawAttr}" data-symbol="${symbol}" data-name="${name}" data-image="${iconUrl}">
-                        ${iconUrl
-                            ? `<img class="demo-token-icon" src="${iconUrl}" alt="${symbol} logo" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;demo-token-icon&quot;></span>'" />`
-                            : `<span class="demo-token-icon"></span>`
-                        }
-                        <div class="demo-token-meta">
-                            <strong><span class="demo-token-ticker">${symbol}</span><span class="demo-token-name">${name}</span></strong>
-                            ${copyButton}
-                            <span class="demo-token-age" ${createdMs ? `data-created-ms="${createdMs}"` : ''}>age ${ageText}</span>
-                            <span class="demo-token-tags">${socialTags}</span>
+                    <article class="demo-token-row" data-phase="${phase}" ${createdMs ? `data-created-ms="${createdMs}"` : ''} ${mint ? `data-mint="${mint}"` : ''} data-mc-usd="${mcRawAttr}" data-symbol="${symbol}" data-name="${name}" data-image="${iconUrl}">
+                        <div class="demo-token-identity">
+                            ${iconUrl
+                                ? `<img class="demo-token-icon" src="${iconUrl}" data-fallbacks="${escapeHtml(imageFallbacks.join('|'))}" data-fallback-label="${symbolInitials}" alt="${symbol} logo" loading="lazy" referrerpolicy="no-referrer" onerror="retryTokenImage(this)" />`
+                                : `<span class="demo-token-icon">${symbolInitials}</span>`
+                            }
+                            ${mintButton}
                         </div>
-                        <div class="demo-token-cap"><span class="demo-cap-mc">MC ${mcText}</span><span class="demo-cap-vol">V ${volText}</span></div>
-                        <button class="demo-token-buy" type="button" data-quick-buy-sol="1">1 SOL</button>
+                        <div class="demo-token-meta">
+                            <div class="demo-token-line1">
+                                <span class="demo-token-ticker">${symbol}</span>
+                                <span class="demo-token-name">${name}</span>
+                            </div>
+                            <div class="demo-token-line2">
+                                <span class="demo-token-age" ${createdMs ? `data-created-ms="${createdMs}"` : ''}>${ageText}</span>
+                                ${socialTags ? `<span class="demo-token-tags">${socialTags}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="demo-token-side">
+                            <div class="demo-token-cap">
+                                <span class="demo-cap-vol">V ${volText}</span>
+                                <span class="demo-cap-mc">MC ${mcText}</span>
+                            </div>
+                            <button class="demo-token-buy" type="button" data-quick-buy-sol="1"><span class="demo-buy-label">1 SOL</span></button>
+                        </div>
                     </article>
                 `;
             }
@@ -871,6 +1233,33 @@
                 }
                 return trimmed;
             }
+
+            function imageCandidates(uri) {
+                const value = String(uri || '').trim();
+                if (!value) return [];
+                const match = value.match(/(?:ipfs:\/\/|\/ipfs\/)([^?#]+)/i);
+                if (!match) return [value];
+                const cidPath = match[1].replace(/^ipfs\//i, '');
+                return [
+                    `https://pump.mypinata.cloud/ipfs/${cidPath}`,
+                    `https://cloudflare-ipfs.com/ipfs/${cidPath}`,
+                    `https://ipfs.io/ipfs/${cidPath}`
+                ];
+            }
+
+            window.retryTokenImage = function retryTokenImage(image) {
+                const remaining = String(image?.dataset?.fallbacks || '').split('|').filter(Boolean);
+                if (remaining.length) {
+                    image.dataset.fallbacks = remaining.slice(1).join('|');
+                    image.src = remaining[0];
+                    return;
+                }
+                image.onerror = null;
+                const placeholder = document.createElement('span');
+                placeholder.className = 'demo-token-icon';
+                placeholder.textContent = image.dataset.fallbackLabel || '?';
+                image.replaceWith(placeholder);
+            };
 
             async function refreshSolPrice() {
                 for (const url of SOL_PRICE_URLS) {
@@ -929,6 +1318,11 @@
                 const soonCutoff = nowMs - SOON_MAX_AGE_SECONDS * 1000;
                 const migratedCutoff = nowMs - MIGRATED_MAX_AGE_SECONDS * 1000;
                 for (const [mint, token] of tokenMap) {
+                    if (!isPumpToken(token)) {
+                        tokenMap.delete(mint);
+                        unsubscribeTokenTrade(mint);
+                        continue;
+                    }
                     if (token.migrated) {
                         if (token.createdMs < migratedCutoff) {
                             tokenMap.delete(mint);
@@ -951,6 +1345,9 @@
                     image_uri: token.image_uri,
                     usd_market_cap: mcUsd,
                     volume_24h: computeUsdVolume(token),
+                    liquidity_usd: Number(token.liquidityUsd) || 0,
+                    trade_count: Number(token.tradeCount) || 0,
+                    bonding_progress: Number(token.bondingProgress) || Math.min(99, Math.max(0, (mcUsd / 69000) * 100)),
                     created_timestamp: token.createdMs,
                     twitter: token.twitter,
                     website: token.website,
@@ -958,62 +1355,63 @@
                 };
             }
 
-            function tokenLaunchpad(token) {
-                return (token && token.launchpad && LAUNCHPAD_META[token.launchpad]) ? token.launchpad : 'pump';
-            }
-
             function getRenderableNewTokens() {
                 const nowMs = Date.now();
-                const allowed = launchpadFilters.new;
                 const out = [];
                 for (const token of tokenMap.values()) {
                     if (token.migrated) continue;
-                    if (!allowed.has(tokenLaunchpad(token))) continue;
+                    if (!isPumpToken(token)) continue;
                     const ageSec = Math.max(0, Math.floor((nowMs - token.createdMs) / 1000));
                     if (ageSec > MAX_TOKEN_AGE_SECONDS) continue;
                     const mcUsd = computeUsdMc(token);
+                    const liquidityUsd = Number(token.liquidityUsd) || 0;
                     if (Number.isFinite(mcUsd) && mcUsd >= MIN_MC_USD && mcUsd <= MAX_MC_USD) {
                         token.qualified = true;
                     }
                     if (!token.qualified) continue;
                     if (Number.isFinite(mcUsd) && mcUsd > 0 && mcUsd < DROP_MC_USD) continue;
-                    out.push(toRenderPayload(token, mcUsd));
+                    const payload = toRenderPayload(token, mcUsd);
+                    payload._phase = 'new';
+                    out.push(payload);
                 }
                 out.sort((a, b) => b.created_timestamp - a.created_timestamp);
                 return out.slice(0, MAX_VISIBLE_ROWS);
             }
 
             function getRenderableSoonTokens() {
-                const allowed = launchpadFilters.soon;
                 const out = [];
                 for (const token of tokenMap.values()) {
                     if (token.migrated) continue;
-                    if (!allowed.has(tokenLaunchpad(token))) continue;
+                    if (!isPumpToken(token)) continue;
                     const mcUsd = computeUsdMc(token);
+                    const liquidityUsd = Number(token.liquidityUsd) || 0;
                     if (!Number.isFinite(mcUsd) || mcUsd < MIN_SOON_MC_USD) continue;
                     const volUsd = computeUsdVolume(token);
                     if (!Number.isFinite(volUsd) || volUsd < MIN_SOON_VOL_USD) continue;
-                    out.push(toRenderPayload(token, mcUsd));
+                    const payload = toRenderPayload(token, mcUsd);
+                    payload._phase = 'soon';
+                    out.push(payload);
                 }
                 out.sort((a, b) => b.usd_market_cap - a.usd_market_cap);
                 return out.slice(0, MAX_VISIBLE_ROWS);
             }
 
             function getRenderableMigratedTokens() {
-                const allowed = launchpadFilters.migrated;
                 const out = [];
                 for (const token of tokenMap.values()) {
                     if (!token.migrated) continue;
-                    if (!allowed.has(tokenLaunchpad(token))) continue;
+                    if (!isPumpToken(token)) continue;
                     const migratedAt = Number(token.migratedAtMs) || 0;
                     if (!migratedAt) continue;
                     const mcUsd = computeUsdMc(token);
+                    const liquidityUsd = Number(token.liquidityUsd) || 0;
                     if (!Number.isFinite(mcUsd) || mcUsd < MIN_MIGRATED_MC_USD) continue;
                     const volH24 = computeUsdVolume(token);
                     const volH1 = Number(token.volH1Usd) || 0;
                     const displayVol = volH24 || volH1 || 0;
                     if (displayVol < MIN_MIGRATED_VOL_USD) continue;
                     const payload = toRenderPayload(token, mcUsd);
+                    payload._phase = 'migrated';
                     payload.volume_24h = displayVol;
                     payload.created_timestamp = migratedAt;
                     payload._migratedAtMs = migratedAt;
@@ -1024,7 +1422,7 @@
             }
 
             function emptyRowHtml(message) {
-                return `<article class="demo-token-row is-empty"><span class="demo-token-icon"></span><div class="demo-token-meta"><strong><span class="demo-token-ticker">$LIVE</span><span class="demo-token-name">${escapeHtml(message)}</span></strong><span class="demo-token-age">age --</span></div><div class="demo-token-cap"><span class="demo-cap-mc">MC N/A</span><span class="demo-cap-vol">V N/A</span></div><button class="demo-token-buy" type="button" data-quick-buy-sol="1">1 SOL</button></article>`;
+                return `<article class="demo-token-row is-empty"><div class="demo-token-identity"><span class="demo-token-icon"></span></div><div class="demo-token-meta"><div class="empty-state"><span class="demo-token-name">${escapeHtml(message)}</span><button type="button" data-feed-retry>Retry</button></div><div class="demo-token-line2"><span class="demo-token-age">Feed filters may be hiding results</span></div></div></article>`;
             }
 
             function renderEmptyState(message) {
@@ -1065,6 +1463,10 @@
                         migratedColumnList.innerHTML = tokens.map(buildTokenRowHtml).join('');
                     }
                 }
+                tabColumns.forEach((column) => {
+                    const count = document.querySelector(`[data-count-for="${column.dataset.tab}"]`);
+                    if (count) count.textContent = String(column.querySelectorAll('.demo-token-row[data-mint]').length);
+                });
             }
 
             function scheduleRender() {
@@ -1090,7 +1492,7 @@
                             return;
                         }
                         const ageEl = row.querySelector('.demo-token-age');
-                        if (ageEl) ageEl.textContent = `age ${formatAgeFromMs(createdMs)}`;
+                        if (ageEl) ageEl.textContent = formatAgeFromMs(createdMs);
                     });
                 });
                 if (needsRerender) scheduleRender();
@@ -1099,22 +1501,29 @@
             async function fetchTokenMetadata(mint, uri) {
                 if (!uri || metadataFetched.has(mint)) return;
                 metadataFetched.add(mint);
-                const httpUri = ipfsToHttp(uri);
-                if (!httpUri) return;
-                try {
-                    const res = await fetch(httpUri, { cache: 'no-store' });
-                    if (!res.ok) return;
-                    const meta = await res.json();
-                    const token = tokenMap.get(mint);
-                    if (!token) return;
-                    token.image_uri = ipfsToHttp(meta.image || meta.image_uri || meta.imageUrl || '');
-                    token.twitter = meta.twitter || token.twitter;
-                    token.website = meta.website || token.website;
-                    token.telegram = meta.telegram || token.telegram;
-                    scheduleRender();
-                } catch {
-                    // metadata not critical
+                const candidates = imageCandidates(uri);
+                for (const metadataUrl of candidates) {
+                    try {
+                        const res = await fetch(metadataUrl, { cache: 'no-store' });
+                        if (!res.ok) continue;
+                        const meta = await res.json();
+                        const token = tokenMap.get(mint);
+                        if (!token) return;
+                        token.image_uri = ipfsToHttp(meta.image || meta.image_uri || meta.imageUrl || '');
+                        token.twitter = meta.twitter || token.twitter;
+                        token.website = meta.website || token.website;
+                        token.telegram = meta.telegram || token.telegram;
+                        metadataRetryCount.delete(mint);
+                        scheduleRender();
+                        return;
+                    } catch {
+                        // try the next IPFS gateway
+                    }
                 }
+                metadataFetched.delete(mint);
+                const retries = (metadataRetryCount.get(mint) || 0) + 1;
+                metadataRetryCount.set(mint, retries);
+                if (retries <= 3) window.setTimeout(() => fetchTokenMetadata(mint, uri), 8000 * retries);
             }
 
             function wsSend(payload) {
@@ -1190,7 +1599,7 @@
                     qualified: mcUsd >= MIN_MC_USD && mcUsd <= MAX_MC_USD,
                     migrated,
                     migratedAtMs: migrated ? (createdAt || Date.now()) : 0,
-                    launchpad: 'pump'
+                    launchpad: PUMP_LAUNCHPAD
                 });
                 if (!migrated) subscribeTokenTrade(mint);
                 return true;
@@ -1276,6 +1685,10 @@
                 const pumpswapPool = pickPumpswapPool(pools);
                 const firstPool = pools[0] || {};
                 const poolForData = pumpswapPool || firstPool;
+                const sourceMarket = pumpswapPool?.market || firstPool?.market || pumpswapPool?.dex || firstPool?.dex || tok.source || '';
+                const launchpad = detectLaunchpadFromMarket(sourceMarket);
+                const isPumpGraduate = launchpad === PUMP_LAUNCHPAD || Boolean(pumpswapPool) || /pump$/i.test(mint);
+                if (!isPumpGraduate) return false;
                 const migratedAtMs = extractMigrationTimestamp(item, tok, pumpswapPool, poolForData);
                 if (!migratedAtMs) return false;
                 const mcUsd = Number(
@@ -1328,16 +1741,11 @@
                     if (!existing.twitter && tok.twitter) existing.twitter = tok.twitter;
                     if (!existing.website && tok.website) existing.website = tok.website;
                     if (!existing.telegram && tok.telegram) existing.telegram = tok.telegram;
-                    if (!existing.launchpad) {
-                        const mkt = pumpswapPool?.market || firstPool?.market || '';
-                        existing.launchpad = detectLaunchpadFromMarket(mkt) || 'pump';
-                    }
+                    if (!existing.launchpad) existing.launchpad = PUMP_LAUNCHPAD;
                     existing.lastDexUpdateMs = Date.now();
                     unsubscribeTokenTrade(mint);
                     return true;
                 }
-                const sourceMarket = pumpswapPool?.market || firstPool?.market || pumpswapPool?.dex || firstPool?.dex || tok.source || '';
-                const launchpad = detectLaunchpadFromMarket(sourceMarket) || 'pump';
                 tokenMap.set(mint, {
                     mint,
                     symbol: String(tok.symbol || 'TKN').trim() || 'TKN',
@@ -1357,19 +1765,13 @@
                     qualified: false,
                     migrated: true,
                     migratedAtMs,
-                    launchpad
+                    launchpad: PUMP_LAUNCHPAD
                 });
                 return true;
             }
 
             let solanaTrackerSampleLogged = false;
-            const ST_LAUNCHPAD_MARKETS = [
-                { lp: 'pump', market: 'pumpfun' },
-                { lp: 'pump', market: 'pump.fun' },
-                { lp: 'bonk', market: 'letsbonk.fun' },
-                { lp: 'bonk', market: 'launchlab' },
-                { lp: 'bags', market: 'bags.fun' }
-            ];
+            const ST_PUMP_MARKETS = ['pumpfun', 'pump.fun'];
 
             function extractListFromStResponse(data) {
                 return Array.isArray(data)
@@ -1381,14 +1783,14 @@
             }
 
             async function fetchGraduatedFromSolanaTracker() {
-                if (!getSolanaTrackerKey() && typeof window.refreshLykeionSecrets === 'function') {
-                    await window.refreshLykeionSecrets();
+                if (!getSolanaTrackerKey() && typeof window.refreshPaperSecrets === 'function') {
+                    await window.refreshPaperSecrets();
                 }
                 const key = getSolanaTrackerKey();
                 if (!key) return;
-                // Pull graduated per launchpad so each has dedicated representation
+                // Pump.fun graduated tokens only
                 const urls = [
-                    ...ST_LAUNCHPAD_MARKETS.map(({ market }) =>
+                    ...ST_PUMP_MARKETS.map((market) =>
                         `https://data.solanatracker.io/tokens/multi/graduated?limit=100&markets=${encodeURIComponent(market)}`
                     ),
                     ...SOLANA_TRACKER_GRADUATED_URLS
@@ -1413,93 +1815,6 @@
                     }
                 }
                 if (totalChanged) scheduleRender();
-            }
-
-            // Fetch latest (not-yet-graduated) tokens for bonk + bags so they appear in the new/soon columns.
-            // Pump is handled via pumpportal WS; these two are REST-polled.
-            async function fetchLatestLaunchpadTokens() {
-                const key = getSolanaTrackerKey();
-                if (!key) return;
-                const markets = [
-                    { lp: 'bonk', market: 'letsbonk.fun' },
-                    { lp: 'bags', market: 'bags.fun' }
-                ];
-                let changed = 0;
-                for (const { lp, market } of markets) {
-                    const url = `https://data.solanatracker.io/search?markets=${encodeURIComponent(market)}&bonded=false&sortBy=createdAt&sortOrder=desc&limit=60`;
-                    try {
-                        const res = await fetch(url, { cache: 'no-store', headers: { 'x-api-key': key } });
-                        if (!res.ok) continue;
-                        const data = await res.json();
-                        const list = extractListFromStResponse(data);
-                        for (const item of list) {
-                            if (ingestStLiveToken(item, lp)) changed++;
-                        }
-                    } catch {
-                        // try next
-                    }
-                }
-                if (changed) scheduleRender();
-            }
-
-            // Ingest a non-graduated ST token (bonk/bags) into tokenMap.
-            function ingestStLiveToken(item, lpHint) {
-                if (!item || typeof item !== 'object') return false;
-                const tok = item.token || item;
-                const mint = tok?.mint || tok?.address || item.mint || item.address;
-                if (!mint) return false;
-                const pools = Array.isArray(item.pools) ? item.pools : (Array.isArray(tok.pools) ? tok.pools : []);
-                const pool = pools[0] || {};
-                const sourceMarket = pool?.market || pool?.dex || tok.source || item.market || '';
-                const launchpad = detectLaunchpadFromMarket(sourceMarket) || lpHint || '';
-                if (!launchpad) return false;
-                const mcUsd = Number(pool?.marketCap?.usd ?? item?.marketCap?.usd ?? item?.marketCap ?? tok?.marketCap?.usd ?? 0) || 0;
-                const volH24Usd = Number(pool?.txns?.volume24h ?? pool?.volume?.h24 ?? pool?.volume?.usd ?? item?.volume?.h24 ?? 0) || 0;
-                const volH1Usd = Number(pool?.txns?.volume1h ?? pool?.volume?.h1 ?? item?.volume?.h1 ?? 0) || 0;
-                const volM5Usd = Number(pool?.txns?.volume5m ?? pool?.volume?.m5 ?? 0) || 0;
-                const liquidityUsd = Number(pool?.liquidity?.usd ?? pool?.liquidity ?? item?.liquidity?.usd ?? 0) || 0;
-                const createdRaw = tok.createdOn || tok.createdAt || item.createdAt || pool?.createdAt || pool?.openTime;
-                const createdMs = toMsTimestamp(createdRaw) || Date.now();
-                const marketCapSol = solPriceUsd > 0 && mcUsd > 0 ? mcUsd / solPriceUsd : 0;
-                const volumeSol = solPriceUsd > 0 && volH24Usd > 0 ? volH24Usd / solPriceUsd : 0;
-                const existing = tokenMap.get(mint);
-                if (existing) {
-                    if (marketCapSol > 0) existing.marketCapSol = marketCapSol;
-                    if (volumeSol > (existing.volumeSol || 0)) existing.volumeSol = volumeSol;
-                    if (volH1Usd > 0) existing.volH1Usd = volH1Usd;
-                    if (volM5Usd > 0) existing.volM5Usd = volM5Usd;
-                    if (liquidityUsd > 0) existing.liquidityUsd = liquidityUsd;
-                    if (!existing.image_uri && (tok.image || tok.image_uri)) existing.image_uri = tok.image || tok.image_uri;
-                    if (!existing.twitter && tok.twitter) existing.twitter = tok.twitter;
-                    if (!existing.website && tok.website) existing.website = tok.website;
-                    if (!existing.telegram && tok.telegram) existing.telegram = tok.telegram;
-                    if (!existing.launchpad) existing.launchpad = launchpad;
-                    existing.lastDexUpdateMs = Date.now();
-                    if (mcUsd >= MIN_MC_USD && mcUsd <= MAX_MC_USD) existing.qualified = true;
-                    return true;
-                }
-                tokenMap.set(mint, {
-                    mint,
-                    symbol: String(tok.symbol || 'TKN').trim() || 'TKN',
-                    name: String(tok.name || 'unnamed').trim() || 'unnamed',
-                    uri: tok.uri || '',
-                    image_uri: tok.image || tok.image_uri || '',
-                    twitter: tok.twitter || '',
-                    website: tok.website || '',
-                    telegram: tok.telegram || '',
-                    createdMs,
-                    marketCapSol,
-                    volumeSol,
-                    volH1Usd,
-                    volM5Usd,
-                    liquidityUsd,
-                    lastDexUpdateMs: Date.now(),
-                    qualified: mcUsd >= MIN_MC_USD && mcUsd <= MAX_MC_USD,
-                    migrated: false,
-                    migratedAtMs: 0,
-                    launchpad
-                });
-                return true;
             }
 
             async function backfillRecentTokens() {
@@ -1557,7 +1872,8 @@
                     createdMs: now,
                     marketCapSol: Number(data.marketCapSol) || 0,
                     volumeSol: Number(data.solAmount) || 0,
-                    launchpad: 'pump'
+                    tradeCount: 0,
+                    launchpad: PUMP_LAUNCHPAD
                 });
                 subscribeTokenTrade(mint);
                 if (data.uri) fetchTokenMetadata(mint, data.uri);
@@ -1584,6 +1900,7 @@
                 if (Number.isFinite(mcSol) && mcSol > 0) token.marketCapSol = mcSol;
                 const solAmt = Number(data.solAmount);
                 if (Number.isFinite(solAmt) && solAmt > 0) token.volumeSol = (token.volumeSol || 0) + solAmt;
+                token.tradeCount = (Number(token.tradeCount) || 0) + 1;
                 scheduleRender();
             }
 
@@ -1659,6 +1976,8 @@
                 try { data = JSON.parse(raw); } catch { return; }
                 if (!data || typeof data !== 'object') return;
                 if (data.message && !data.txType && !data.mint) return;
+                lastFeedUpdateMs = Date.now();
+                setFeedStatus('live', 'updated just now');
                 const txType = data.txType;
                 if (txType === 'create') handleCreateEvent(data);
                 else if (txType === 'buy' || txType === 'sell') handleTradeEvent(data);
@@ -1680,6 +1999,7 @@
                 }
                 ws.addEventListener('open', () => {
                     wsReconnectAttempts = 0;
+                    setFeedStatus('delayed', 'connected · waiting for an update');
                     wsSend({ method: 'subscribeNewToken' });
                     wsSend({ method: 'subscribeMigration' });
                     if (subscribedMints.size) {
@@ -1687,7 +2007,14 @@
                     }
                 });
                 ws.addEventListener('message', (evt) => handleWsMessage(evt.data));
-                ws.addEventListener('close', () => scheduleReconnect());
+                ws.addEventListener('close', () => {
+                    if (suppressNextReconnect) {
+                        suppressNextReconnect = false;
+                        return;
+                    }
+                    setFeedStatus('disconnected', 'reconnecting automatically');
+                    scheduleReconnect();
+                });
                 ws.addEventListener('error', () => {
                     try { ws.close(); } catch {}
                 });
@@ -1696,6 +2023,7 @@
             function scheduleReconnect() {
                 if (wsReconnectTimer) return;
                 const delay = Math.min(30000, 1000 * Math.pow(2, wsReconnectAttempts++));
+                setFeedStatus('disconnected', `retrying in ${Math.ceil(delay / 1000)}s`);
                 wsReconnectTimer = window.setTimeout(() => {
                     wsReconnectTimer = null;
                     connectWebSocket();
@@ -1720,14 +2048,19 @@
             function normalizeCapBlocks() {
                 const capBlocks = Array.from(document.querySelectorAll('.demo-token-cap'));
                 capBlocks.forEach((capEl) => {
-                    if (capEl.querySelector('.demo-cap-mc') && capEl.querySelector('.demo-cap-vol')) return;
+                    const existingMc = capEl.querySelector('.demo-cap-mc')?.textContent?.trim();
+                    const existingVol = capEl.querySelector('.demo-cap-vol')?.textContent?.trim();
+                    if (existingMc && existingVol) {
+                        capEl.innerHTML = `<span class="demo-cap-vol">${escapeHtml(existingVol)}</span><span class="demo-cap-mc">${escapeHtml(existingMc)}</span>`;
+                        return;
+                    }
                     const raw = String(capEl.textContent || '').replace(/\s+/g, ' ').trim();
                     if (!raw) return;
                     const mcMatch = raw.match(/mc\s*([0-9]+k?)/i);
                     const vMatch = raw.match(/v\s*([0-9]+k?)/i);
                     const mcText = mcMatch ? `MC ${mcMatch[1].toUpperCase()}` : 'MC 8K';
                     const vText = vMatch ? `V ${vMatch[1].toUpperCase()}` : 'V 1K';
-                    capEl.innerHTML = `<span class="demo-cap-mc">${mcText}</span><span class="demo-cap-vol">${vText}</span>`;
+                    capEl.innerHTML = `<span class="demo-cap-vol">${vText}</span><span class="demo-cap-mc">${mcText}</span>`;
                 });
             }
 
@@ -1737,15 +2070,39 @@
             refreshSolPrice().then(() => {
                 backfillRecentTokens();
                 fetchGraduatedFromSolanaTracker();
-                fetchLatestLaunchpadTokens();
             });
             connectWebSocket();
             window.setInterval(refreshSolPrice, SOL_PRICE_REFRESH_MS);
             window.setInterval(backfillRecentTokens, 60 * 1000);
             window.setInterval(fetchGraduatedFromSolanaTracker, SOLANA_TRACKER_REFRESH_MS);
-            window.setInterval(fetchLatestLaunchpadTokens, SOLANA_TRACKER_REFRESH_MS);
             window.setInterval(tickAges, AGE_REFRESH_MS);
             window.setInterval(scheduleRender, 5000);
+            window.setInterval(() => {
+                if (!lastFeedUpdateMs) return;
+                const ageSeconds = Math.floor((Date.now() - lastFeedUpdateMs) / 1000);
+                if (ageSeconds > 45) setFeedStatus('delayed', `last update ${ageSeconds}s ago`);
+                else setFeedStatus('live', `updated ${ageSeconds || 0}s ago`);
+            }, 5000);
+
+            function retryFeed() {
+                if (wsReconnectTimer) {
+                    clearTimeout(wsReconnectTimer);
+                    wsReconnectTimer = null;
+                }
+                try {
+                    if (ws && ws.readyState < WebSocket.CLOSING) {
+                        suppressNextReconnect = true;
+                        ws.close();
+                    }
+                } catch {}
+                setFeedStatus('delayed', 'reconnecting now');
+                connectWebSocket();
+                refreshSolPrice().then(backfillRecentTokens);
+            }
+            feedRetryEl?.addEventListener('click', retryFeed);
+            document.addEventListener('click', (event) => {
+                if (event.target.closest('[data-feed-retry]')) retryFeed();
+            });
 
             async function copyToClipboard(text) {
                 try {
@@ -1788,8 +2145,47 @@
 
             const searchInput = document.getElementById('token-search-input');
             const searchResultsEl = document.getElementById('token-search-results');
+            const searchHost = searchInput?.closest('.token-search') || null;
+            const searchOriginalParent = searchHost?.parentNode || null;
+            const searchOriginalNextSibling = searchHost?.nextSibling || null;
+            const SEARCH_HISTORY_KEY = 'paper.terminal.searchHistory.v1';
             let searchDebounce = null;
             let searchSeq = 0;
+
+            function loadSearchHistory() {
+                try {
+                    const rows = JSON.parse(localStorage.getItem(SEARCH_HISTORY_KEY) || '[]');
+                    return Array.isArray(rows) ? rows.slice(0, 10) : [];
+                } catch {
+                    return [];
+                }
+            }
+
+            function saveSearchHistoryItem(item) {
+                if (!item?.token?.mint) return;
+                const rows = loadSearchHistory().filter((row) => row?.token?.mint !== item.token.mint);
+                rows.unshift(item);
+                try { localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(rows.slice(0, 10))); } catch {}
+            }
+
+            function openTerminalSearch() {
+                if (!searchHost) return;
+                if (searchHost.parentNode !== document.body) document.body.appendChild(searchHost);
+                document.body.classList.add('terminal-search-open');
+                if (searchInput && !searchInput.value.trim()) renderSearchResults(loadSearchHistory(), 'history');
+                else if (searchResultsEl) searchResultsEl.hidden = false;
+            }
+
+            function closeTerminalSearch() {
+                if (searchResultsEl) searchResultsEl.hidden = true;
+                document.body.classList.remove('terminal-search-open');
+                if (!searchHost || !searchOriginalParent || searchHost.parentNode === searchOriginalParent) return;
+                if (searchOriginalNextSibling && searchOriginalNextSibling.parentNode === searchOriginalParent) {
+                    searchOriginalParent.insertBefore(searchHost, searchOriginalNextSibling);
+                } else {
+                    searchOriginalParent.appendChild(searchHost);
+                }
+            }
 
             function isPumpFunToken(item) {
                 const tok = item?.token || item;
@@ -1800,10 +2196,18 @@
                 return pools.some((p) => /pump/i.test(String(p?.market || p?.dex || p?.dexId || '')));
             }
 
-            function renderSearchResults(list) {
+            function renderSearchResults(list, mode = 'results') {
                 if (!searchResultsEl) return;
+                const isHistory = mode === 'history';
+                const header = `
+                    <div class="search-discovery">
+                        <div class="search-discovery-head">
+                            <span>${isHistory ? 'History' : 'Search results'}</span>
+                            ${isHistory && list.length ? '<button type="button" class="search-history-clear" data-clear-search-history>Clear</button>' : '<span>Pump.fun only</span>'}
+                        </div>
+                    </div>`;
                 if (!list.length) {
-                    searchResultsEl.innerHTML = '<div class="search-empty">No pump.fun tokens found</div>';
+                    searchResultsEl.innerHTML = header + `<div class="search-empty">${isHistory ? 'No search history yet.' : 'No Pump.fun tokens found. Try a ticker, name, or contract address.'}</div>`;
                     searchResultsEl.hidden = false;
                     return;
                 }
@@ -1816,41 +2220,108 @@
                     const pools = Array.isArray(item.pools) ? item.pools : [];
                     const primary = pools.find((p) => /pumpswap/i.test(String(p?.market || ''))) || pools[0] || {};
                     const mc = Number(primary.marketCap?.usd || item.marketCap?.usd || 0) || 0;
+                    const volume = Number(primary.volume?.usd || primary.volume?.h24 || item.volume_24h || tok.volume_24h || 0) || 0;
                     const shortMint = mint ? `${mint.slice(0, 4)}…${mint.slice(-4)}` : '';
                     const href = mint ? `demo-trading-terminal.html?chartonly=1#${encodeURIComponent(mint)}` : '#';
                     return `
-                        <a class="search-result" href="${escapeHtml(href)}" data-mint="${escapeHtml(mint)}" data-symbol="${escapeHtml(symbol)}" data-name="${escapeHtml(name)}" data-image="${escapeHtml(image)}">
+                        <a class="search-result" href="${escapeHtml(href)}" data-mint="${escapeHtml(mint)}" data-symbol="${escapeHtml(symbol)}" data-name="${escapeHtml(name)}" data-image="${escapeHtml(image)}" data-mc="${mc}" data-volume="${volume}">
                             ${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.outerHTML='<span class=&quot;no-img&quot;></span>'" />` : '<span class="no-img"></span>'}
-                            <span class="sr-symbol">$${escapeHtml(symbol)}</span>
-                            <span class="sr-name">${escapeHtml(name)}</span>
-                            <span class="sr-mint">${escapeHtml(shortMint)}</span>
-                            <span class="sr-mc">${mc > 0 ? '$' + formatCompactNumber(mc) : '—'}</span>
+                            <span class="sr-identity">
+                                <span class="sr-title"><span class="sr-symbol">$${escapeHtml(symbol)}</span><span class="sr-name">${escapeHtml(name)}</span></span>
+                                <span class="sr-mint">${escapeHtml(shortMint)}</span>
+                            </span>
+                            <span class="sr-metric sr-volume"><span class="sr-metric-label">Volume</span><span class="sr-metric-value">${volume > 0 ? '$' + formatCompactNumber(volume) : '—'}</span></span>
+                            <span class="sr-metric"><span class="sr-metric-label">Market cap</span><span class="sr-metric-value is-mc">${mc > 0 ? '$' + formatCompactNumber(mc) : '—'}</span></span>
                         </a>
                     `;
                 }).join('');
-                searchResultsEl.innerHTML = html;
+                searchResultsEl.innerHTML = header + html;
                 searchResultsEl.hidden = false;
+            }
+
+            function localSearchResults(query = '') {
+                const needle = query.trim().toLowerCase();
+                return Array.from(tokenMap.values())
+                    .filter((token) => !needle || `${token.symbol || ''} ${token.name || ''} ${token.mint || ''}`.toLowerCase().includes(needle))
+                    .sort((a, b) => computeUsdMc(b) - computeUsdMc(a))
+                    .map((token) => ({
+                        token: {
+                            mint: token.mint,
+                            symbol: token.symbol,
+                            name: token.name,
+                            image: token.image_uri,
+                            volume_24h: computeUsdVolume(token)
+                        },
+                        pools: [{
+                            market: token.migrated ? 'pumpswap' : 'pumpfun',
+                            marketCap: { usd: computeUsdMc(token) },
+                            volume: { usd: computeUsdVolume(token) }
+                        }]
+                    }));
+            }
+
+            async function publicPumpSearch(query) {
+                const local = localSearchResults(query);
+                try {
+                    const response = await fetch(
+                        `https://api.dexscreener.com/latest/dex/search?q=${encodeURIComponent(query)}`,
+                        { cache: 'no-store', headers: { accept: 'application/json' } }
+                    );
+                    if (!response.ok) return local;
+                    const payload = await response.json();
+                    const pairs = Array.isArray(payload?.pairs) ? payload.pairs : [];
+                    const seen = new Set(local.map((item) => item?.token?.mint).filter(Boolean));
+                    const remote = [];
+                    for (const pair of pairs) {
+                        if (pair?.chainId !== 'solana') continue;
+                        const dex = String(pair?.dexId || '').toLowerCase();
+                        if (!dex.includes('pump')) continue;
+                        const mint = String(pair?.baseToken?.address || '');
+                        if (!mint || seen.has(mint)) continue;
+                        seen.add(mint);
+                        remote.push({
+                            token: {
+                                mint,
+                                symbol: pair?.baseToken?.symbol || '?',
+                                name: pair?.baseToken?.name || 'unnamed',
+                                image: pair?.info?.imageUrl || '',
+                                volume_24h: Number(pair?.volume?.h24) || 0
+                            },
+                            pools: [{
+                                market: dex,
+                                marketCap: { usd: Number(pair?.marketCap || pair?.fdv) || 0 },
+                                volume: { usd: Number(pair?.volume?.h24) || 0 }
+                            }]
+                        });
+                    }
+                    return [...local, ...remote];
+                } catch {
+                    return local;
+                }
             }
 
             async function runTokenSearch(query) {
                 if (!searchResultsEl) return;
+                const trimmed = query.trim();
+                if (!trimmed) {
+                    renderSearchResults(loadSearchHistory(), 'history');
+                    return;
+                }
                 if (!getSolanaTrackerKey()) {
-                    if (typeof window.refreshLykeionSecrets === 'function') {
-                        await window.refreshLykeionSecrets();
+                    if (typeof window.refreshPaperSecrets === 'function') {
+                        await window.refreshPaperSecrets();
                     }
                     if (!getSolanaTrackerKey()) {
+                        const seq = ++searchSeq;
+                        searchResultsEl.innerHTML = '<div class="search-empty">Searching Pump.fun tokens…</div>';
                         searchResultsEl.hidden = false;
-                        searchResultsEl.innerHTML = '<div class="search-empty">Add SOLANA_TRACKER_API_KEY in Vercel (or .env), redeploy, and hard-refresh. Tried /api/lykeion-secrets.</div>';
+                        const results = await publicPumpSearch(trimmed);
+                        if (seq !== searchSeq) return;
+                        renderSearchResults(results);
                         return;
                     }
                 }
                 const seq = ++searchSeq;
-                const trimmed = query.trim();
-                if (!trimmed) {
-                    searchResultsEl.hidden = true;
-                    searchResultsEl.innerHTML = '';
-                    return;
-                }
                 searchResultsEl.innerHTML = '<div class="search-empty">Searching...</div>';
                 searchResultsEl.hidden = false;
                 try {
@@ -1886,7 +2357,16 @@
                 searchDebounce = window.setTimeout(() => runTokenSearch(value), 250);
             });
             searchInput?.addEventListener('focus', () => {
-                if (searchResultsEl && searchResultsEl.innerHTML.trim()) searchResultsEl.hidden = false;
+                openTerminalSearch();
+            });
+            searchInput?.addEventListener('pointerdown', openTerminalSearch);
+            searchInput?.addEventListener('click', openTerminalSearch);
+            searchResultsEl?.addEventListener('click', (event) => {
+                const clear = event.target.closest('[data-clear-search-history]');
+                if (!clear) return;
+                event.preventDefault();
+                try { localStorage.removeItem(SEARCH_HISTORY_KEY); } catch {}
+                renderSearchResults([], 'history');
             });
             // Stash a snapshot so the terminal can show name/symbol/icon immediately on load
             searchResultsEl?.addEventListener('click', (event) => {
@@ -1894,8 +2374,22 @@
                 if (!link) return;
                 const mint = link.getAttribute('data-mint') || '';
                 if (!mint) return;
+                saveSearchHistoryItem({
+                    token: {
+                        mint,
+                        symbol: link.getAttribute('data-symbol') || '',
+                        name: link.getAttribute('data-name') || '',
+                        image: link.getAttribute('data-image') || '',
+                        volume_24h: Number(link.getAttribute('data-volume')) || 0
+                    },
+                    pools: [{
+                        market: 'pumpfun',
+                        marketCap: { usd: Number(link.getAttribute('data-mc')) || 0 },
+                        volume: { usd: Number(link.getAttribute('data-volume')) || 0 }
+                    }]
+                });
                 try {
-                    sessionStorage.setItem('lykeion.pendingTerminalSnap', JSON.stringify({
+                    sessionStorage.setItem('paper.pendingTerminalSnap', JSON.stringify({
                         mint,
                         symbol: link.getAttribute('data-symbol') || '',
                         name: link.getAttribute('data-name') || '',
@@ -1906,12 +2400,19 @@
             document.addEventListener('click', (event) => {
                 if (!searchResultsEl) return;
                 if (event.target.closest('.token-search')) return;
-                searchResultsEl.hidden = true;
+                closeTerminalSearch();
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape' || !document.body.classList.contains('terminal-search-open')) return;
+                closeTerminalSearch();
+                searchInput?.blur();
             });
 
             if (!tabButtons.length || !tabColumns.length) return;
 
             function setActiveTab(tabName) {
+                terminalUi.activeTab = tabName;
+                saveTerminalUi();
                 tabButtons.forEach((btn) => {
                     const active = btn.dataset.tabTarget === tabName;
                     btn.classList.toggle('is-active', active);
@@ -1919,39 +2420,31 @@
                 });
                 tabColumns.forEach((col) => {
                     col.classList.toggle('is-active', col.dataset.tab === tabName);
+                    const list = col.querySelector('.demo-token-list');
+                    if (list && Number.isFinite(Number(terminalUi.scroll?.[tabName]))) {
+                        list.scrollTop = Number(terminalUi.scroll[tabName]);
+                    }
                 });
             }
 
             tabButtons.forEach((btn) => {
                 btn.addEventListener('click', () => setActiveTab(btn.dataset.tabTarget));
             });
-
-            document.querySelectorAll('.lp-filter').forEach((group) => {
-                const column = group.getAttribute('data-lp-filter');
-                if (!column || !launchpadFilters[column]) return;
-                group.addEventListener('click', (evt) => {
-                    const chip = evt.target.closest('.lp-chip');
-                    if (!chip || !group.contains(chip)) return;
-                    const lp = chip.getAttribute('data-lp');
-                    if (!lp) return;
-                    const set = launchpadFilters[column];
-                    if (set.has(lp)) {
-                        if (set.size === 1) return;
-                        set.delete(lp);
-                        chip.classList.remove('is-active');
-                    } else {
-                        set.add(lp);
-                        chip.classList.add('is-active');
-                    }
-                    scheduleRender();
-                });
+            setActiveTab(terminalUi.activeTab || 'new');
+            [newColumnList, soonColumnList, migratedColumnList].forEach((list) => {
+                list?.addEventListener('scroll', () => {
+                    const tab = list.closest('.demo-board-column')?.dataset.tab;
+                    if (!tab) return;
+                    terminalUi.scroll = { ...(terminalUi.scroll || {}), [tab]: list.scrollTop };
+                    saveTerminalUi();
+                }, { passive: true });
             });
 
             window.addEventListener('resize', ensureEnoughRows);
 
             // ===== Virtual trading engine =====
-            const WALLET_KEY = 'lykeion.demoWallet.v1';
-            const WALLET_KEY_LEGACY = 'lyceum.demoWallet.v1';
+            const WALLET_KEY = 'paper.demoWallet.v1';
+            const WALLET_KEY_LEGACY = 'Paper.demoWallet.v1';
             const STARTING_SOL = 5;
             const MIN_OPEN_POSITION_SOL = 0.0005;
 
@@ -1969,6 +2462,7 @@
             }
             function saveWallet() {
                 try { localStorage.setItem(WALLET_KEY, JSON.stringify(wallet)); } catch {}
+                window.dispatchEvent(new CustomEvent('paper:wallet-updated'));
             }
             const wallet = loadWallet();
 
@@ -2036,7 +2530,7 @@
             function fmtSolPlain(n) {
                 return `${(Number(n) || 0).toFixed(3)} SOL`;
             }
-            const PNL_HANDLE_KEY = 'lykeion.pnlHandle';
+            const PNL_HANDLE_KEY = 'paper.pnlHandle';
             const PNL_HANDLE_MAX = 10;
             function normalizePnlHandleInput(value) {
                 return String(value || '')
@@ -2049,9 +2543,46 @@
                 const h = normalizePnlHandleInput(raw);
                 return h ? '@' + h : '';
             }
-            function ensurePnlHandleSet() {
-                const raw = localStorage.getItem(PNL_HANDLE_KEY);
-                if (raw !== null && normalizePnlHandleInput(raw) !== '') return Promise.resolve(true);
+            function pnlHandleCandidate(value) {
+                const raw = String(value || '').trim();
+                if (!raw || raw.length > 24 || /[.â€¦…]/.test(raw)) return '';
+                const h = normalizePnlHandleInput(raw);
+                return /^[a-zA-Z0-9_]{2,10}$/.test(h) ? h : '';
+            }
+            function getWalletUsernameForPnlCard() {
+                try {
+                    const direct = pnlHandleCandidate(localStorage.getItem('paper.username'));
+                    if (direct) return direct;
+                } catch (e) {}
+                try {
+                    const session = JSON.parse(localStorage.getItem('paper.wallet.session') || 'null');
+                    const fromSession = pnlHandleCandidate(session?.username || session?.displayName);
+                    if (fromSession) return fromSession;
+                } catch (e) {}
+                try {
+                    const fromAuth = pnlHandleCandidate(window.WalletAuth?.getDisplayName?.());
+                    if (fromAuth) return fromAuth;
+                } catch (e) {}
+                return '';
+            }
+            function getWalletUserIdForPnlCard() {
+                try {
+                    const fromAuth = window.WalletAuth?.getUserId?.();
+                    if (fromAuth) return fromAuth;
+                } catch (e) {}
+                try {
+                    const session = JSON.parse(localStorage.getItem('paper.wallet.session') || 'null');
+                    return session?.pubkey || null;
+                } catch (e) {}
+                return null;
+            }
+            function savePnlHandle(value) {
+                const h = normalizePnlHandleInput(value);
+                if (!h) return false;
+                try { localStorage.setItem(PNL_HANDLE_KEY, h); } catch (e) {}
+                return true;
+            }
+            function promptForPnlHandle() {
                 return new Promise((resolve) => {
                     document.getElementById('pnl-handle-setup-modal')?.remove();
                     const modal = document.createElement('div');
@@ -2087,7 +2618,7 @@
                     saveBtn.addEventListener('click', () => {
                         const v = normalizePnlHandleInput(input.value);
                         if (!v) return;
-                        try { localStorage.setItem(PNL_HANDLE_KEY, v); } catch (e) {}
+                        savePnlHandle(v);
                         finish(true);
                     });
                     (typeof queueMicrotask === 'function' ? queueMicrotask : (fn) => setTimeout(fn, 0))(() => {
@@ -2095,6 +2626,18 @@
                         syncSave();
                     });
                 });
+            }
+            function ensurePnlHandleSet() {
+                const raw = localStorage.getItem(PNL_HANDLE_KEY);
+                if (raw !== null && normalizePnlHandleInput(raw) !== '') return Promise.resolve(true);
+                if (savePnlHandle(getWalletUsernameForPnlCard())) return Promise.resolve(true);
+                const userId = getWalletUserIdForPnlCard();
+                if (userId && typeof getUserProfile === 'function') {
+                    return getUserProfile(userId)
+                        .then((profile) => savePnlHandle(profile?.username) ? true : promptForPnlHandle())
+                        .catch(() => promptForPnlHandle());
+                }
+                return promptForPnlHandle();
             }
 
             const whBalEl = document.getElementById('wh-bal');
@@ -2151,6 +2694,31 @@
                 if (changed) saveWallet();
             }
 
+            function updatePortfolioChart(pnlTotal, balance) {
+                const lineEl = document.getElementById('portfolio-chart-line');
+                const areaEl = document.getElementById('portfolio-chart-area');
+                if (!lineEl || !areaEl) return;
+                const w = 400;
+                const h = 120;
+                const pad = 8;
+                const pts = [];
+                const n = 24;
+                const trend = pnlTotal >= 0 ? 1 : -1;
+                const base = balance > 0 ? balance : 5;
+                for (let i = 0; i < n; i++) {
+                    const t = i / (n - 1);
+                    const wave = Math.sin(i * 0.55) * 0.04;
+                    const val = base * (0.88 + t * 0.12 * trend + wave);
+                    const x = pad + t * (w - pad * 2);
+                    const y = h - pad - ((val / (base * 1.05)) * (h - pad * 2));
+                    pts.push([x, y]);
+                }
+                const line = pts.map((p, i) => (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+                const area = line + ' L' + (w - pad) + ' ' + (h - pad) + ' L' + pad + ' ' + (h - pad) + ' Z';
+                lineEl.setAttribute('d', line);
+                areaEl.setAttribute('d', area);
+            }
+
             function renderDemoPortfolio() {
                 pruneDustPositions();
                 const unreal = totalUnrealizedSol();
@@ -2172,6 +2740,14 @@
                     pnlEl.classList.toggle('is-pos', pnlTotal > 0);
                     pnlEl.classList.toggle('is-neg', pnlTotal < 0);
                 }
+                const changePill = document.getElementById('portfolio-change-pill');
+                if (changePill) {
+                    const sign = pnlTotal >= 0 ? '+' : '';
+                    changePill.textContent = sign + fmtSol(pnlTotal) + ' SOL';
+                    changePill.classList.toggle('is-neg', pnlTotal < 0);
+                    changePill.classList.toggle('is-pos', pnlTotal >= 0);
+                }
+                updatePortfolioChart(pnlTotal, bal);
                 // Hit rate: % of closed sells that realized positive PnL
                 const closedSells = (wallet.history || []).filter((h) => h.kind === 'sell' && Number.isFinite(h.pnlSol));
                 const wins = closedSells.filter((h) => h.pnlSol > 0).length;
@@ -2247,6 +2823,18 @@
                 const dex = dexMintCache.get(mint);
                 return String(p?.symbol || dex?.symbol || 'TKN').replace(/^\$?/, '');
             }
+            function drawPnlCardText(ctx, text, x, y, maxWidth, font, align = 'left') {
+                ctx.font = font;
+                ctx.textAlign = align;
+                const measured = ctx.measureText(text).width;
+                const sizeMatch = font.match(/(\d+)px/);
+                if (measured > maxWidth && sizeMatch) {
+                    const baseSize = Number(sizeMatch[1]);
+                    const nextSize = Math.max(34, Math.floor(baseSize * (maxWidth / measured)));
+                    ctx.font = font.replace(/(\d+)px/, nextSize + 'px');
+                }
+                ctx.fillText(text, x, y);
+            }
             async function buildPnlCardCanvas(targetMint) {
                 const mint = targetMint;
                 if (!mint) return null;
@@ -2282,9 +2870,8 @@
                 const pnlSolX = W * 0.22 - 90;
                 const pnlSolY = H * 0.58 - 44;
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '800 185px "NCLNeovibes Demo", "Helvetica Neue", Arial, sans-serif';
-                ctx.fillText(pnlSolStr, pnlSolX, pnlSolY);
-                const statsY = H * 0.796 + 170;
+                drawPnlCardText(ctx, pnlSolStr, pnlSolX, pnlSolY, W * 0.44, '800 185px "NCLNeovibes Demo", "Helvetica Neue", Arial, sans-serif');
+                const statsY = H * 0.796 + 148;
                 const investedX = Math.max(16, W * 0.40 - 666);
                 const holdX = Math.max(16, W * 0.58 - 640);
                 const pctX = Math.max(80, W * 0.955 - 840);
@@ -2295,11 +2882,10 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '700 60px "Helvetica Neue", Arial, sans-serif';
                 ctx.textAlign = 'right';
-                ctx.fillText((pct >= 0 ? '+' : '') + pct.toFixed(1) + '%', pctX, statsY);
+                drawPnlCardText(ctx, (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%', pctX, statsY, 220, '700 60px "Helvetica Neue", Arial, sans-serif', 'right');
                 const uname = getPnlCardDisplayName();
-                ctx.font = '500 60px "Helvetica Neue", Arial, sans-serif';
                 ctx.fillStyle = '#ffffff';
-                if (uname) ctx.fillText(uname, W * 0.955, statsY);
+                if (uname) drawPnlCardText(ctx, uname, W - 128, statsY, 420, '500 60px "Helvetica Neue", Arial, sans-serif', 'right');
                 return canvas;
             }
 
@@ -2324,9 +2910,8 @@
                 const pnlSolX = W * 0.22 - 90;
                 const pnlSolY = H * 0.58 - 44;
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '800 185px "NCLNeovibes Demo", "Helvetica Neue", Arial, sans-serif';
-                ctx.fillText(pnlSolStr, pnlSolX, pnlSolY);
-                const statsY = H * 0.796 + 170;
+                drawPnlCardText(ctx, pnlSolStr, pnlSolX, pnlSolY, W * 0.44, '800 185px "NCLNeovibes Demo", "Helvetica Neue", Arial, sans-serif');
+                const statsY = H * 0.796 + 148;
                 const investedX = Math.max(16, W * 0.40 - 666);
                 const holdX = Math.max(16, W * 0.58 - 640);
                 const pctX = Math.max(80, W * 0.955 - 840);
@@ -2337,11 +2922,10 @@
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '700 60px "Helvetica Neue", Arial, sans-serif';
                 ctx.textAlign = 'right';
-                ctx.fillText((pct >= 0 ? '+' : '') + pct.toFixed(1) + '%', pctX, statsY);
+                drawPnlCardText(ctx, (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%', pctX, statsY, 220, '700 60px "Helvetica Neue", Arial, sans-serif', 'right');
                 const uname = getPnlCardDisplayName();
-                ctx.font = '500 60px "Helvetica Neue", Arial, sans-serif';
                 ctx.fillStyle = '#ffffff';
-                if (uname) ctx.fillText(uname, W * 0.955, statsY);
+                if (uname) drawPnlCardText(ctx, uname, W - 128, statsY, 420, '500 60px "Helvetica Neue", Arial, sans-serif', 'right');
                 return canvas;
             }
             function showPnlCardModal(canvas, downloadSlug) {
@@ -2376,7 +2960,7 @@
                         const a = document.createElement('a');
                         const sym = String(downloadSlug || 'token').replace(/[^a-z0-9]/gi, '_').toLowerCase();
                         a.href = url;
-                        a.download = 'lykeion-pnl-' + sym + '.png';
+                        a.download = 'paper-pnl-' + sym + '.png';
                         document.body.appendChild(a);
                         a.click();
                         a.remove();
@@ -2415,8 +2999,10 @@
                 }
                 el.innerHTML = sells.map((h) => {
                     const pos = wallet.positions[h.mint];
+                    const live = tokenMap.get(h.mint);
                     const dex = dexMintCache.get(h.mint);
-                    let sym = pos?.symbol || dex?.symbol || '';
+                    let sym = h.symbol || pos?.symbol || live?.symbol || dex?.symbol || '';
+                    const tokenName = h.name || pos?.name || live?.name || dex?.name || '';
                     if (sym) sym = '$' + String(sym).replace(/^\$/, '');
                     if (!sym && h.mint) {
                         const m = String(h.mint);
@@ -2431,7 +3017,8 @@
                         + (mc > 0 ? ' · MC $' + formatCompactNumber(mc) : '');
                     return ''
                         + '<div class="portfolio-hist-row">'
-                        + '<span class="ph-main"><strong>' + escapeHtml(sym) + '</strong> '
+                        + '<span class="ph-main"><strong>' + escapeHtml(sym) + '</strong>'
+                        + (tokenName ? '<span class="ph-token-name">' + escapeHtml(tokenName) + '</span>' : '') + ' '
                         + '<span class="ph-pnl ' + pnlCls + '">' + escapeHtml(pnlStr) + '</span><br>'
                         + '<span style="opacity:0.55;font-size:11px;">' + escapeHtml(detail) + '</span></span>'
                         + '<div class="ph-right">'
@@ -2576,7 +3163,16 @@
                 }
                 wallet.balanceSol -= amountSol;
                 const nowMs = Date.now();
-                wallet.history.unshift({ kind: 'buy', mint, sol: amountSol, mcUsd: mcUsdAtClick, at: nowMs });
+                wallet.history.unshift({
+                    kind: 'buy',
+                    mint,
+                    symbol: snap.symbol || wallet.positions[mint]?.symbol || '',
+                    name: snap.name || wallet.positions[mint]?.name || '',
+                    image_uri: snap.image_uri || wallet.positions[mint]?.image_uri || '',
+                    sol: amountSol,
+                    mcUsd: mcUsdAtClick,
+                    at: nowMs
+                });
                 if (wallet.history.length > 100) wallet.history.length = 100;
                 saveWallet();
                 renderWalletHud();
@@ -2599,7 +3195,17 @@
                 pos.investedSol -= sellInvested;
                 pos.lastMcUsd = currentMcUsd;
                 const nowMs = Date.now();
-                wallet.history.unshift({ kind: 'sell', mint, sol: proceedsSol, pnlSol: realized, mcUsd: currentMcUsd, at: nowMs });
+                wallet.history.unshift({
+                    kind: 'sell',
+                    mint,
+                    symbol: pos.symbol || '',
+                    name: pos.name || '',
+                    image_uri: pos.image_uri || '',
+                    sol: proceedsSol,
+                    pnlSol: realized,
+                    mcUsd: currentMcUsd,
+                    at: nowMs
+                });
                 if (wallet.history.length > 100) wallet.history.length = 100;
                 if (pos.investedSol < MIN_OPEN_POSITION_SOL) delete wallet.positions[mint];
                 saveWallet();
@@ -2663,7 +3269,7 @@
                     runQuickBuy(row, buyBtn);
                     return;
                 }
-                try { sessionStorage.setItem('lykeion.pendingTerminalSnap', JSON.stringify(snap)); } catch {}
+                try { sessionStorage.setItem('paper.pendingTerminalSnap', JSON.stringify(snap)); } catch {}
                 window.location.href = 'demo-trading-terminal.html?chartonly=1#' + encodeURIComponent(snap.mint);
             }
             [newColumnList, soonColumnList, migratedColumnList].forEach((list) => {
@@ -2691,6 +3297,27 @@
             });
             document.getElementById('positions-close')?.addEventListener('click', closePortfolioPanel);
             document.getElementById('portfolio-modal-backdrop')?.addEventListener('click', closePortfolioPanel);
+
+            let portfolioBalHidden = false;
+            document.getElementById('portfolio-bal-toggle')?.addEventListener('click', () => {
+                portfolioBalHidden = !portfolioBalHidden;
+                ['portfolio-bal-usd', 'portfolio-bal-summary'].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    if (portfolioBalHidden) {
+                        el.dataset.prev = el.textContent;
+                        el.textContent = '••••••';
+                    } else if (el.dataset.prev) {
+                        el.textContent = el.dataset.prev;
+                    }
+                });
+            });
+            document.querySelectorAll('.portfolio-time-tab').forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.portfolio-time-tab').forEach((t) => t.classList.remove('is-active'));
+                    tab.classList.add('is-active');
+                });
+            });
 
             document.getElementById('portfolio-share-7d-btn')?.addEventListener('click', async () => {
                 try {
@@ -2744,7 +3371,7 @@
                 positionsPanel.hidden = true;
                 if (wallet.positions[mint]) {
                     try {
-                        sessionStorage.setItem('lykeion.pendingTerminalSnap', JSON.stringify({
+                        sessionStorage.setItem('paper.pendingTerminalSnap', JSON.stringify({
                             mint,
                             symbol: wallet.positions[mint].symbol,
                             name: wallet.positions[mint].name,
@@ -2770,6 +3397,7 @@
             renderWalletHud();
         })();
     </script>
+    <script src="../scripts/nav-back.js"></script>
     <script src="/scripts/vercel-analytics.js"></script>
 </body>
 </html>

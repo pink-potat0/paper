@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="paper AI assistant for Solana research and on-chain swaps." />
+  <title>paper - Assistant</title>
+  <link rel="icon" type="image/png" href="../assets/icons/favicon.png" />
+  <link rel="apple-touch-icon" href="../assets/icons/favicon.png" />
+  <script src="../scripts/theme.js"></script>
+  <link rel="stylesheet" href="../styles/style.css?v=no-grid-5" />
+  <link rel="stylesheet" href="../styles/landing-premium.css?v=nav-metal-2" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="../scripts/data-utils.js"></script>
+  <script src="../scripts/wallet-auth.js"></script>
+  <script src="../scripts/wallet-logos.js"></script>
+  <script src="../scripts/wallet-modal.js"></script>
+  <script src="../scripts/wallet-nav.js"></script>
+</head>
+<body class="page-ai">
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <header class="landing-header" id="landing-header">
+    <nav class="landing-nav" aria-label="Main">
+      <a href="/pages/dashboard" class="landing-nav__brand landing-nav__brand--back" data-nav-back aria-label="Back">
+        <span class="landing-nav__back" aria-hidden="true">←</span>
+        <img src="../assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+      </a>
+      <div class="landing-nav__actions">
+        <button type="button" class="nav-connect-btn landing-nav__connect nav-metal-pill" id="nav-connect-btn"><span class="nav-metal-pill__label metal-shine-button__label">Connect Wallet</span></button>
+        <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" aria-pressed="false">
+          <span class="theme-toggle-icon" aria-hidden="true">&#9789;</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="ai-page-shell">
+    <section class="ai-container" aria-label="paper assistant chat">
+      <div class="ai-header">
+        <div>
+          <p class="ai-subtitle">paper Assistant</p>
+        </div>
+      </div>
+
+      <div class="chat-container" id="chat-container">
+        <!-- Chat messages will be appended here -->
+      </div>
+
+      <form id="chat-form" autocomplete="off">
+        <input type="text" id="user-input" class="ai-chat-input" placeholder="Ask about a wallet, token, price, or swap..." required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="paper-chat-input" />
+        <button id="send-btn" class="ai-send-btn">Send</button>
+      </form>
+    </section>
+  </main>
+
+  <div class="cpotato-signature">&copy; 2026 pinkpotato</div>
+
+  <script src="../scripts/bootstrap-secrets.js"></script>
+  <script src="../scripts/bootstrap-secrets-fetch.js"></script>
+  <script src="../scripts/interactive-dots.js?v=boxes-2"></script>
+  <script src="../scripts/cursor-utils.js"></script>
+  <script src="../scripts/crypto-price.js"></script>
+  <script src="../scripts/context-fetcher.js"></script>
+  <script src="../scripts/chat-ui.js"></script>
+  <script src="../scripts/jupiter-swap.js"></script>
+  <script src="../scripts/bootstrap-secrets-remote.js"></script>
+  <script src="../scripts/nav-back.js"></script>
+  <script src="/scripts/vercel-analytics.js"></script>
+</body>
+</html>

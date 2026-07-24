@@ -1,6 +1,6 @@
 (function (w) {
-  w.LYKEION_SECRETS = Object.assign(
+  w.PAPER_SECRETS = Object.assign(
     { openai: "", helius: "", solanaTracker: "" },
-    w.LYKEION_SECRETS || {}
+    w.PAPER_SECRETS || {}
   );
 })(typeof globalThis !== "undefined" ? globalThis : window);

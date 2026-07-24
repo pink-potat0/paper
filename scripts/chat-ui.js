@@ -22,6 +22,10 @@ function isWalletAnalysisPayload(value) {
   return Boolean(value && typeof value === "object" && value.kind === "wallet_analysis_widget");
 }
 
+function isSwapQuotePayload(value) {
+  return Boolean(value && typeof value === "object" && value.kind === "swap_quote_widget");
+}
+
 function escapeHtml(text) {
   return String(text || "")
     .replace(/&/g, "&amp;")
@@ -345,6 +349,93 @@ function renderHotTokensWidget(element, payload) {
   if (container) container.scrollTop = container.scrollHeight;
 }
 
+function renderSwapQuoteWidget(element, payload) {
+  if (!element || !payload) return;
+  const container = _chatContainer();
+  element.classList.remove("typing");
+  element.classList.add("swap-quote-widget", "typewriter-done");
+
+  const walletShort = payload.walletShort || "wallet";
+  const side = payload.side === "sell" ? "sell" : "buy";
+  const inputLabel = escapeHtml(payload.inputLabel || "—");
+  const outputLabel = escapeHtml(payload.outputLabel || "—");
+  const impact = escapeHtml(payload.priceImpact || "N/A");
+  const slippage = escapeHtml(payload.slippage || "1%");
+  const summary = escapeHtml(payload.textSummary || "Review this swap before confirming.");
+  const assistantNote = payload.assistantNote ? `<p class="swap-widget-note">${escapeHtml(payload.assistantNote)}</p>` : "";
+
+  element.innerHTML = `
+    <div class="launchpad-widget-title">On-chain swap</div>
+    <div class="launchpad-widget-subtitle">Wallet ${walletShort} · ${side === "buy" ? "Buy with SOL" : "Sell for SOL"}</div>
+    <p class="swap-widget-summary">${summary}</p>
+    ${assistantNote}
+    <div class="swap-widget-grid">
+      <div><span class="token-key">You pay</span><strong>${inputLabel}</strong></div>
+      <div><span class="token-key">You receive</span><strong>${outputLabel}</strong></div>
+      <div><span class="token-key">Price impact</span><strong>${impact}</strong></div>
+      <div><span class="token-key">Slippage</span><strong>${slippage}</strong></div>
+    </div>
+    <div class="swap-widget-actions">
+      <button type="button" class="swap-confirm-btn" data-swap-confirm="1">Confirm swap</button>
+      <button type="button" class="swap-cancel-btn" data-swap-cancel="1">Cancel</button>
+    </div>
+    <div class="swap-widget-status" hidden></div>
+  `;
+
+  const statusEl = element.querySelector(".swap-widget-status");
+  const confirmBtn = element.querySelector("[data-swap-confirm]");
+  const cancelBtn = element.querySelector("[data-swap-cancel]");
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent = "Swap cancelled.";
+      }
+      confirmBtn.disabled = true;
+      cancelBtn.disabled = true;
+    });
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener("click", async () => {
+      if (!window.JupiterSwap || typeof window.JupiterSwap.executeSwap !== "function") {
+        if (statusEl) {
+          statusEl.hidden = false;
+          statusEl.textContent = "Swap module not loaded.";
+        }
+        return;
+      }
+      confirmBtn.disabled = true;
+      if (cancelBtn) cancelBtn.disabled = true;
+      if (statusEl) {
+        statusEl.hidden = false;
+        statusEl.textContent = "Approve the transaction in your wallet…";
+      }
+      try {
+        const result = await window.JupiterSwap.executeSwap(payload);
+        if (statusEl) {
+          const label = result && result.recovered
+            ? "Wallet reported send failed, but the swap was confirmed on-chain."
+            : "Swap submitted.";
+          statusEl.innerHTML = `${escapeHtml(label)} <a href="${escapeHtml(result.explorerUrl)}" target="_blank" rel="noopener noreferrer">View on Solscan</a>`;
+        }
+      } catch (err) {
+        if (statusEl) {
+          const msg = (err && err.message) || "Swap failed.";
+          statusEl.textContent = msg === "Send failed"
+            ? "Wallet reported send failed. If your balances changed, the swap may still have landed; check wallet activity or Solscan."
+            : msg;
+        }
+        confirmBtn.disabled = false;
+        if (cancelBtn) cancelBtn.disabled = false;
+      }
+    });
+  }
+
+  if (container) container.scrollTop = container.scrollHeight;
+}
+
 function renderWalletAnalysisWidget(element, payload) {
   if (!element || !payload) return;
   const container = _chatContainer();
@@ -432,7 +523,7 @@ async function renderWalletDeepWidgets(slot, payload) {
   const deep = payload.deepAnalysis || {};
   const events = Array.isArray(deep.events) ? deep.events : [];
   const solPeers = Array.isArray(deep.solPeers) ? deep.solPeers : [];
-  const api = (typeof window !== "undefined" && window.LykeionDeep) || {};
+  const api = (typeof window !== "undefined" && window.PaperDeep) || {};
   if (!api.computeTradeHeatmap || !api.computeAvgHoldTime || !api.findSideWallets) {
     slot.innerHTML = `<div class="wallet-analysis-error">Deep analysis unavailable.</div>`;
     return;

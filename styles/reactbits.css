@@ -1,0 +1,145 @@
+/* React Bits — vanilla ports (https://reactbits.dev/) */
+
+/* Aurora — hero-scoped (React Bits) */
+.rb-aurora {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.rb-aurora__canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.rb-aurora--fallback {
+    background:
+        radial-gradient(ellipse 80% 50% at 70% 20%, rgba(var(--accent-rgb), 0.15), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 30% 60%, rgba(var(--accent-secondary-rgb), 0.1), transparent 50%);
+    animation: rbAuroraFallback 12s ease-in-out infinite alternate;
+}
+
+@keyframes rbAuroraFallback {
+    0% { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.05); }
+}
+
+/* SplitText */
+.rb-split__unit {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(1.1em);
+    filter: blur(4px);
+}
+
+.rb-split--play .rb-split__unit {
+    animation: rbSplitIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes rbSplitIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+/* BlurText */
+.rb-blur__word {
+    display: inline-block;
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(-12px);
+}
+
+.rb-blur--play .rb-blur__word {
+    animation: rbBlurIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes rbBlurIn {
+    0% {
+        opacity: 0;
+        filter: blur(12px);
+        transform: translateY(-12px);
+    }
+    60% {
+        opacity: 0.7;
+        filter: blur(4px);
+        transform: translateY(2px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+    }
+}
+
+/* Accent highlight text — flat, no gradient sweep */
+.rb-gradient-text {
+    display: inline;
+    color: var(--accent-light);
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+}
+
+.rb-gradient-text--live {
+    animation: none;
+}
+
+/* ClickSpark */
+.rb-click-spark {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+/* SpotlightCard */
+.rb-spotlight {
+    position: relative;
+    overflow: hidden;
+}
+
+.rb-spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.35s;
+    background: radial-gradient(
+        600px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+        rgba(var(--accent-rgb), 0.14),
+        transparent 42%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+.rb-spotlight:hover::before {
+    opacity: 1;
+}
+
+.rb-spotlight > * {
+    position: relative;
+    z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rb-split__unit,
+    .rb-blur__word {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        animation: none !important;
+    }
+
+    .rb-gradient-text--live,
+    .rb-aurora--fallback {
+        animation: none !important;
+    }
+}

@@ -3,77 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Learn to trade Solana memecoins with lessons, practice tools, and an AI trading assistant.">
-    <title>Lykeion - Learn About Solana Trading</title>
+    <meta name="description" content="Paper trade Solana markets with structured lessons, a simulated board, and AI analysis — before putting real capital at risk.">
+    <title>paper — Paper Trading for Solana</title>
     <link rel="icon" type="image/png" href="assets/icons/favicon.png">
     <link rel="apple-touch-icon" href="assets/icons/favicon.png">
-    <link rel="stylesheet" href="styles/style.css">
+    <script src="scripts/theme.js"></script>
+    <script src="scripts/wallet-auth.js"></script>
+    <script src="scripts/wallet-logos.js"></script>
+    <script src="scripts/wallet-modal.js"></script>
+    <script src="scripts/wallet-nav.js"></script>
+    <link rel="stylesheet" href="styles/style.css?v=no-grid-5">
+    <link rel="stylesheet" href="styles/landing-premium.css?v=nav-7">
+    <link rel="stylesheet" href="styles/reactbits.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="page-home">
-    <div class="cursor-glow"></div>
-    <div class="background-pattern"></div>
-    
-    <nav class="navbar">
-        <span class="nav-logo">Lykeion</span>
-        <button type="button" class="ca-badge" data-ca="GWpjiGgTo2RckTLRo71AJijvxkhescZ4QgSGWdPbpump" title="Click to copy Lykeion CA">
-            <span class="ca-label">CA</span>
-            <span class="ca-value">GWpji...pump</span>
-            <span class="ca-copy" aria-hidden="true">⧉</span>
-        </button>
-        <a href="https://x.com/_ppotat0"><img src="assets/icons/icons8-x-50.png" alt="Close" class="x-icon"></a>
-    </nav>
-    
-    <main class="main-content">
-        <div class="container">
-            <h1 class="main-title fade-in-up">
-                Learn to Trade <span class="psol">Solana</span> memecoins
-            </h1>
-            <p class="subtxt fade-in-up delay-1">
-                Lessons, practice tools, and an AI trading assistant<br>
-                all in one place.
-            </p>
-        </div>
-        <button class="btn fade-in-up delay-2" onclick="window.location.href='/pages/login'">
-            <span class="btn-text">Get Started</span>
-            <span class="btn-arrow">→</span>
-        </button>
+<body class="page-home page-home--premium">
+    <div class="lp-bg" id="lp-bg" aria-hidden="true">
+        <div class="lp-orb lp-orb--1" aria-hidden="true"></div>
+        <div class="lp-orb lp-orb--2" aria-hidden="true"></div>
+        <div id="lp-aurora" class="lp-aurora rb-aurora"></div>
+        <svg class="lp-beams" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="lp-beam-a" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="transparent"/>
+                    <stop offset="50%" stop-color="rgba(96,165,250,0.3)"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                </linearGradient>
+                <linearGradient id="lp-beam-b" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="transparent"/>
+                    <stop offset="50%" stop-color="rgba(96,165,250,0.2)"/>
+                    <stop offset="100%" stop-color="transparent"/>
+                </linearGradient>
+            </defs>
+            <path class="lp-beam lp-beam--1" d="M-200 120 Q720 280 1640 80" fill="none" stroke="url(#lp-beam-a)" stroke-width="1.2"/>
+            <path class="lp-beam lp-beam--2" d="M-100 420 Q720 220 1540 520" fill="none" stroke="url(#lp-beam-b)" stroke-width="1"/>
+            <path class="lp-beam lp-beam--3" d="M0 680 Q720 480 1440 780" fill="none" stroke="url(#lp-beam-a)" stroke-width="1"/>
+        </svg>
+        <div class="lp-vignette" aria-hidden="true"></div>
+    </div>
+
+    <header class="landing-header" id="landing-header">
+        <nav class="landing-nav" aria-label="Main">
+            <a href="/" class="landing-nav__brand">
+                <img src="assets/images/paper-nav-logo.png" alt="paper" class="landing-nav__logo">
+            </a>
+            <div class="landing-nav__actions">
+                <button type="button" class="nav-connect-btn landing-nav__connect metal-shine-button" id="nav-connect-btn">
+                    <span class="metal-shine-button__label">Connect Wallet</span>
+                </button>
+                <button type="button" class="theme-toggle landing-nav__theme" aria-label="Switch theme" aria-pressed="false">
+                    <span class="theme-toggle-icon" aria-hidden="true">☾</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="lp">
+        <section class="lp-hero" id="top">
+            <button
+                type="button"
+                class="lp-ca-strip landing-ca-strip"
+                data-paper-ca
+                aria-label="Copy demo identifier"
+                title="Copy demo identifier"
+            >
+                <span class="lp-ca-strip__value">PAPER-DEMO-LOADING</span>
+                <span class="lp-ca-strip__action">Copy</span>
+            </button>
+            <div class="lp-lamp" aria-hidden="true"></div>
+
+            <div class="lp-hero__copy lp-fade" data-lp-reveal>
+                <h1 class="lp-title">
+                    <span data-rb-split-text data-rb-split-type="words" data-rb-split-delay="55">Paper trade first</span>
+                    <span class="lp-title__accent" data-rb-gradient-text>before putting capital at risk.</span>
+                </h1>
+                <p class="lp-lead" data-rb-blur-text data-rb-blur-delay="80">paper is a Solana learning platform. Take step-by-step lessons, practice on a demo trading board with no real money, and use AI to research tokens and wallets.</p>
+                <div class="lp-cta-row">
+                    <button type="button" class="lp-btn-glow metal-shine-button" id="hero-connect-btn">
+                        <span class="lp-btn-glow__border" aria-hidden="true"></span>
+                        <span class="lp-btn-glow__label metal-shine-button__label">Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="lp-preview lp-fade lp-fade--2" id="hero-visual" data-lp-reveal tabindex="0">
+                <div class="lp-preview__stage">
+                    <div class="lp-preview__frame">
+                        <header class="lp-preview__bar">
+                            <div class="lp-preview__dots" aria-hidden="true"><i></i><i></i><i></i></div>
+                            <nav class="lp-preview__tabs" role="tablist" aria-label="Product preview" id="lp-preview-tabs">
+                                <button type="button" class="lp-preview__tab is-active" data-panel="0" role="tab" aria-selected="true" aria-controls="lp-panel-0" id="lp-tab-0">Training</button>
+                                <button type="button" class="lp-preview__tab" data-panel="1" role="tab" aria-selected="false" aria-controls="lp-panel-1" id="lp-tab-1">Demo</button>
+                                <button type="button" class="lp-preview__tab" data-panel="2" role="tab" aria-selected="false" aria-controls="lp-panel-2" id="lp-tab-2">AI</button>
+                            </nav>
+                        </header>
+                        <div class="lp-preview__body" data-lp-tilt>
+                        <article class="lp-panel is-active" id="lp-panel-0" data-panel="0" role="tabpanel" aria-labelledby="lp-tab-0">
+                            <div class="lp-panel__content lp-course">
+                                <div class="lp-course__head">
+                                    <span class="lp-course__label">paper Curriculum</span>
+                                    <span class="lp-course__pct">42% complete</span>
+                                </div>
+                                <div class="lp-bar lp-course__bar"><i style="width:42%"></i></div>
+                                <div class="lp-course__layout">
+                                    <ol class="lp-course__modules">
+                                        <li class="is-done"><span>01</span> Solana fundamentals</li>
+                                        <li class="is-active"><span>02</span> Memecoin dynamics</li>
+                                        <li><span>03</span> Risk management</li>
+                                        <li><span>04</span> Execution playbook</li>
+                                    </ol>
+                                    <div class="lp-course__lesson">
+                                        <h3>Module 02 · Memecoin dynamics</h3>
+                                        <ul>
+                                            <li>Reading holder distribution</li>
+                                            <li>Liquidity &amp; exit liquidity</li>
+                                            <li>Narrative vs. price action</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="/pages/lycuem-course.html" class="lp-panel__cta">Open curriculum →</a>
+                        </article>
+                        <article class="lp-panel" id="lp-panel-1" data-panel="1" role="tabpanel" aria-labelledby="lp-tab-1" hidden>
+                            <div class="lp-panel__content lp-demo">
+                                <div class="lp-demo__chrome">
+                                    <span class="lp-demo__brand"><i aria-hidden="true">◎</i> Paper Trade</span>
+                                    <div class="lp-demo__chrome-actions">
+                                        <span class="lp-demo__pill">Paper trading</span>
+                                        <span class="lp-demo__bal">5.00 SOL</span>
+                                    </div>
+                                </div>
+                                <div class="lp-demo__columns" aria-hidden="true">
+                                    <div class="lp-demo__col">
+                                        <div class="lp-demo__col-head">
+                                            <h4>Newly Created</h4>
+                                            <div class="lp-demo__chips"><span>💊</span><span>🐶</span><span>💰</span></div>
+                                        </div>
+                                        <div class="lp-demo__row has-position">
+                                            <span class="lp-demo__icon lp-demo__icon--bonk"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>BONK <em>Bonk Inu</em></strong>
+                                                <span>2m · v$42K · mc$1.2M</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                        <div class="lp-demo__row">
+                                            <span class="lp-demo__icon lp-demo__icon--cat"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>POPCAT <em>Popcat</em></strong>
+                                                <span>1m · v$9K · mc$420K</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                    </div>
+                                    <div class="lp-demo__col">
+                                        <div class="lp-demo__col-head">
+                                            <h4>About to Graduate</h4>
+                                            <div class="lp-demo__chips"><span>💊</span><span>🐶</span></div>
+                                        </div>
+                                        <div class="lp-demo__row">
+                                            <span class="lp-demo__icon lp-demo__icon--wif"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>WIF <em>dogwifhat</em></strong>
+                                                <span>8m · v$18K · mc$890K</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                        <div class="lp-demo__row is-dim">
+                                            <span class="lp-demo__icon"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>MOON <em>Moonshot</em></strong>
+                                                <span>12m · v$6K · mc$310K</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                    </div>
+                                    <div class="lp-demo__col">
+                                        <div class="lp-demo__col-head">
+                                            <h4>Graduated</h4>
+                                            <div class="lp-demo__chips"><span>💊</span><span>💰</span></div>
+                                        </div>
+                                        <div class="lp-demo__row">
+                                            <span class="lp-demo__icon lp-demo__icon--jup"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>JUP <em>Jupiter</em></strong>
+                                                <span>1h · v$2.1M · mc$1.8B</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                        <div class="lp-demo__row is-dim">
+                                            <span class="lp-demo__icon"></span>
+                                            <div class="lp-demo__meta">
+                                                <strong>BOME <em>Book of Meme</em></strong>
+                                                <span>2h · v$890K · mc$420M</span>
+                                            </div>
+                                            <span class="lp-demo__buy">1 SOL</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="lp-demo__footer">
+                                    <div class="lp-demo__toast">✓ Simulated buy · BONK · 1 SOL</div>
+                                    <div class="lp-demo__position">
+                                        <span>Open · BONK</span>
+                                        <strong>+0.42 SOL</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="/pages/demo-trading" class="lp-panel__cta">Try paper trading →</a>
+                        </article>
+                        <article class="lp-panel" id="lp-panel-2" data-panel="2" role="tabpanel" aria-labelledby="lp-tab-2" hidden>
+                            <div class="lp-panel__content lp-ai">
+                                <div class="lp-ai__thread">
+                                    <div class="lp-ai__msg lp-ai__msg--user">What's the wallet concentration on this mint?</div>
+                                    <div class="lp-ai__msg lp-ai__msg--bot">
+                                        <span class="lp-ai__from">paper AI</span>
+                                        <p>Top 10 wallets hold <b>34%</b> of supply — medium-risk distribution.</p>
+                                        <div class="lp-ai__card">
+                                            <div class="lp-ai__card-row"><span>Top 10 holders</span><strong>34%</strong></div>
+                                            <div class="lp-ai__card-row"><span>Largest wallet</span><strong>8.2%</strong></div>
+                                            <div class="lp-ai__card-row"><span>Liquidity locked</span><strong class="is-warn">No</strong></div>
+                                        </div>
+                                        <p class="lp-ai__hint">Watch for clustered sells from wallets above 2%.</p>
+                                    </div>
+                                </div>
+                                <div class="lp-ai__composer">
+                                    <span>Analyze a token, wallet, or chart…</span>
+                                    <i aria-hidden="true">↑</i>
+                                </div>
+                            </div>
+                            <a href="/pages/paper-ai.html" class="lp-panel__cta">Launch assistant →</a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <section class="lp-leaderboard lp-fade" data-lp-reveal aria-label="Top paper traders">
+            <div class="lp-leaderboard__head">
+                <h2>Top paper traders</h2>
+                <p>Ranked by simulated P&amp;L on the paper trading board.</p>
+            </div>
+            <div class="lp-leaderboard__frame">
+                <div class="lp-leaderboard__table" role="table" aria-label="Leaderboard preview">
+                    <div class="lp-leaderboard__row lp-leaderboard__row--head" role="row">
+                        <span role="columnheader">#</span>
+                        <span role="columnheader">Trader</span>
+                        <span role="columnheader">Trades</span>
+                        <span role="columnheader">Win rate</span>
+                        <span role="columnheader">P&amp;L</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--1" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">1</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> paperalpha</span>
+                        <span class="lp-leaderboard__stat" role="cell">47</span>
+                        <span class="lp-leaderboard__stat" role="cell">71%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+14.2 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--2" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">2</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> solstice</span>
+                        <span class="lp-leaderboard__stat" role="cell">38</span>
+                        <span class="lp-leaderboard__stat" role="cell">68%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+11.6 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--3" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">3</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> memelab</span>
+                        <span class="lp-leaderboard__stat" role="cell">52</span>
+                        <span class="lp-leaderboard__stat" role="cell">64%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+9.8 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--4" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">4</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> curve_reader</span>
+                        <span class="lp-leaderboard__stat" role="cell">29</span>
+                        <span class="lp-leaderboard__stat" role="cell">62%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+7.4 SOL</span>
+                    </div>
+                    <div class="lp-leaderboard__row lp-leaderboard__row--5" role="row">
+                        <span class="lp-leaderboard__rank" role="cell">5</span>
+                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> zero_rug</span>
+                        <span class="lp-leaderboard__stat" role="cell">41</span>
+                        <span class="lp-leaderboard__stat" role="cell">59%</span>
+                        <span class="lp-leaderboard__pnl is-up" role="cell">+5.9 SOL</span>
+                    </div>
+                </div>
+                <a href="/pages/leaderboard" class="lp-leaderboard__cta">View full leaderboard →</a>
+            </div>
+        </section>
     </main>
-    <script src="scripts/cursor-utils.js"></script>
-    <script>
-        (function () {
-            const badge = document.querySelector('.ca-badge');
-            if (!badge) return;
-            badge.addEventListener('click', async () => {
-                const ca = badge.getAttribute('data-ca');
-                if (!ca) return;
-                try {
-                    await navigator.clipboard.writeText(ca);
-                } catch (err) {
-                    const ta = document.createElement('textarea');
-                    ta.value = ca;
-                    document.body.appendChild(ta);
-                    ta.select();
-                    try { document.execCommand('copy'); } catch (_) {}
-                    ta.remove();
-                }
-                badge.classList.add('is-copied');
-                const valEl = badge.querySelector('.ca-value');
-                const prev = valEl ? valEl.textContent : '';
-                if (valEl) valEl.textContent = 'copied';
-                setTimeout(() => {
-                    badge.classList.remove('is-copied');
-                    if (valEl) valEl.textContent = prev;
-                }, 1200);
-            });
-        })();
-    </script>
-    <script src="index.js"></script>
-    <script src="/scripts/vercel-analytics.js"></script>
-    <footer class="footer">
-        <p>&copy; 2026 pinkpotato</p>
+
+    <footer class="footer footer--landing lp-footer">
+        <p>&copy; 2026 pinkpotato · paper</p>
     </footer>
+
+    <script src="scripts/interactive-dots.js?v=boxes-2"></script>
+    <script src="scripts/landing-premium.js?v=nav-7"></script>
+    <script src="/scripts/vercel-analytics.js"></script>
 </body>
 </html>

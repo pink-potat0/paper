@@ -2,95 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Learn to trade Solana memecoins with lessons, practice tools, and an AI trading assistant.">
-    <title>Lykeion - Sign In</title>
-    <link rel="icon" type="image/png" href="../assets/icons/favicon.png">
-    <link rel="apple-touch-icon" href="../assets/icons/favicon.png">
-    <link rel="stylesheet" href="../styles/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="../scripts/firebase-config.js"></script>
-    <script src="../scripts/firestore-utils.js"></script>
+    <meta http-equiv="refresh" content="0;url=/?connect=1">
+    <title>paper - Connect Wallet</title>
+    <script>window.location.replace('/?connect=1');</script>
 </head>
-<body>
-    <div class="cursor-glow"></div>
-    <div class="background-pattern"></div>
-    
-    <nav class="navbar">
-        <span class="nav-logo">Lykeion</span>
-        <a href="/"><img src="../assets/icons/icons8-x-50.png" alt="Close" class="x-icon"></a>
-    </nav>
-    <main class="main-content">
-        <h2 class="auth-title">Welcome to Lykeion</h2>
-        <div class="auth-container fade-in-up">
-            <p class="auth-subtitle">Choose how you'd like to sign in</p>
-
-
-            <!-- Email Authentication Section -->
-            <div class="auth-section">
-                <div class="auth-tabs">
-                    <button class="auth-tab active" data-tab="signin">Sign In</button>
-                    <button class="auth-tab" data-tab="signup">Sign Up</button>
-                </div>
-
-                <!-- Sign In Form -->
-                <form id="signinForm" class="auth-form active">
-                    <div class="form-group">
-                        <input type="email" id="signinEmail" class="form-input" placeholder="Email" required />
-                    </div>
-                    <div class="form-group password-group">
-                        <input type="password" id="signinPassword" class="form-input" placeholder="Password" required />
-                        <button type="button" class="password-toggle" data-target="signinPassword">
-                            <span class="eye-icon"><img src="../assets/icons/icons8-eye-24.png" alt=""></span>
-                        </button>
-                    </div>
-                    <button type="submit" class="auth-btn primary-btn">
-                        <span class="btn-text">Sign In</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
-    </form>
-
-                <!-- Sign Up Form -->
-                <form id="signupForm" class="auth-form">
-                    <div class="form-group">
-                        <input type="email" id="signupEmail" class="form-input" placeholder="Email" required />
-                    </div>
-                    <div class="form-group">
-                        <input type="text" id="username" class="form-input" placeholder="Username" required />
-                    </div>
-                    <div class="form-group password-group">
-                        <input type="password" id="signupPassword" class="form-input" placeholder="Password" required minlength="8" />
-                        <button type="button" class="password-toggle" data-target="signupPassword">
-                            <span class="eye-icon"><img src="../assets/icons/icons8-eye-24.png" alt=""></span>
-                        </button>
-                    </div>
-                    <button type="submit" class="auth-btn primary-btn">
-                        <span class="btn-text">Create Account</span>
-                        <span class="btn-arrow">→</span>
-                    </button>
-                </form>
-            </div>
-            <p id="msg" class="auth-message"></p>
-        </div>
-    </main>
-
-    <a href="/" class="floating-back-btn" title="Go back">
-        <span>←</span>
-    </a>
-
-    <footer class="footer">
-        <p>&copy; 2026 pinkpotato</p>
-    </footer>
-
-    <script src="../scripts/cursor-utils.js"></script>
-    <script src="../scripts/login.js"></script>
-    <script src="/scripts/vercel-analytics.js"></script>
-</body>
+<body></body>
 </html>

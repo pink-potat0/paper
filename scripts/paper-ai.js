@@ -1,4 +1,4 @@
-const SOLANA_ASSISTANT_SYSTEM_PROMPT = `You are Lykeion Assistant, the official AI for the Lykeion app. You are a Solana-focused cryptocurrency chat assistant. When asked your name or identity, say you are Lykeion Assistant. Provide accurate, clear answers to any questions about cryptocurrency, the Solana blockchain, or trading Solana ecosystem tokens, including Solana memecoins. Explain complex concepts in simple terms, offering educational guidance on Solana-specific topics and memecoin trading strategies.
+const SOLANA_ASSISTANT_SYSTEM_PROMPT = `You are paper Assistant, the official AI for the paper app. You are a Solana-focused cryptocurrency chat assistant. When asked your name or identity, say you are paper Assistant. Provide accurate, clear answers to any questions about cryptocurrency, the Solana blockchain, or trading Solana ecosystem tokens, including Solana memecoins. Explain complex concepts in simple terms, offering educational guidance on Solana-specific topics and memecoin trading strategies.
 
 For multi-part or complex queries, use step-by-step reasoning before delivering your answers. Always prioritize accuracy, transparency, and up-to-date knowledge. If recent context is provided in the prompt, treat it as higher-priority than older internal knowledge. If you are unsure, clearly say so instead of guessing. If you encounter unclear or ambiguous queries, ask clarifying questions as needed before answering. Continue assisting or follow up with the user until their objectives are fully met.
 
@@ -21,13 +21,13 @@ Output Format:
 - Use placeholders [like this] for generalizable examples.
 - Keep responses conversational and accessible, suitable for both beginners and experienced users.`;
 
-// Keys must not live in source control. Set window.LYKEION_SECRETS before this script loads, e.g. via a small gitignored local script, or use the Node server + OPENAI_API_KEY in .env for chat.
-const OPENAI_API_KEY = (typeof window !== "undefined" && window.LYKEION_SECRETS && String(window.LYKEION_SECRETS.openai || "").trim()) || "";
+// Keys must not live in source control. Set window.PAPER_SECRETS before this script loads, e.g. via a small gitignored local script, or use the Node server + OPENAI_API_KEY in .env for chat.
+const OPENAI_API_KEY = (typeof window !== "undefined" && window.PAPER_SECRETS && String(window.PAPER_SECRETS.openai || "").trim()) || "";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const DEXSCREENER_API_BASE = "https://api.dexscreener.com/latest/dex";
 
 function getHeliusKey() {
-  return (typeof window !== "undefined" && window.LYKEION_SECRETS && String(window.LYKEION_SECRETS.helius || "").trim()) || "";
+  return (typeof window !== "undefined" && window.PAPER_SECRETS && String(window.PAPER_SECRETS.helius || "").trim()) || "";
 }
 
 /** Public mainnet RPCs only — use for getBalance so balance works even if Helius RPC misbehaves. */
@@ -54,7 +54,7 @@ async function solanaRpcCallPublic(method, params) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: "lykeion-wallet-pub",
+          id: "paper-wallet-pub",
           method,
           params,
         }),
@@ -244,9 +244,488 @@ function getCapabilitiesResponse() {
     "2. Token lookup by CA: send a Solana contract address and I return a token card with price, market cap, volume, links, and actions.\n" +
     "3. Live price widget: ask for prices like BTC, ETH, SOL, XRP, BNB, DOGE, TRX, USDT, USDC, and HYPE.\n" +
     "4. Wallet PnL analysis card: send a wallet address to get balance, 7D net PnL, and top token trades.\n" +
-    "5. Bubble map shortcut: token cards include a Bubble Map button for holder-structure view.\n\n" +
-    "Try: \"what is this token <ca>\", \"analyze this wallet <address>\", \"price of SOL\", or any Solana question."
+    "5. On-chain swaps: connect your wallet, then say e.g. \"buy 0.5 SOL of <token CA>\" — I'll quote via Jupiter and ask you to confirm before signing.\n" +
+    "6. Bubble map shortcut: token cards include a Bubble Map button for holder-structure view.\n\n" +
+    "Try: \"buy 0.25 sol of <ca>\", \"analyze this wallet <address>\", \"price of SOL\", or any Solana question."
   );
+}
+
+function isOnChainTradeIntent(userMessage) {
+  const text = String(userMessage || "").toLowerCase();
+  if (/\b(how|what|why|explain|learn|should i|tutorial|demo|simulate|paper)\b/.test(text)) return false;
+  const hasAction = /\b(buy|swap|purchase|sell|trade)\b/.test(text);
+  if (!hasAction) return false;
+  const hasMint = extractTokenAddressCandidates(userMessage).length > 0;
+  const hasSolAmount = /(\d*\.?\d+)\s*sol\b/i.test(text);
+  const hasTicker = extractTickerCandidates(userMessage).length > 0;
+  const hasSwapTarget = /\b(?:to|for|into|of)\s+(\$?[a-z0-9]{2,44})\b/i.test(userMessage);
+  const hasNaturalSwapTarget =
+    /\b(?:sell|buy|purchase)\s+(?:all|max|everything|half|quarter|\d*\.?\d+\s*%|\d*\.?\d+\s*)?\s*(?:of\s+|my\s+)?\$?[a-z0-9]{2,44}\b/i.test(userMessage) ||
+    /\b(?:swap|trade|exchange)\s+(?:all|max|everything|half|quarter|\d*\.?\d+|\d*\.?\d+\s*%)\s+(?:(?:of|from)\s+)?(?:my\s+)?\$?[a-z0-9]{2,44}\s+(?:to|for|into)\s+\$?[a-z0-9]{2,44}\b/i.test(userMessage);
+  return hasMint || hasSolAmount || hasTicker || hasSwapTarget || hasNaturalSwapTarget;
+}
+
+function parseSolAmountFromText(text) {
+  const match = String(text || "").match(/(\d*\.?\d+)\s*sol\b/i);
+  if (match) return Number(match[1]);
+  return 0.1;
+}
+
+function parseSwapSlippageBps(text) {
+  const source = String(text || "");
+  const match =
+    source.match(/\bslippage\s*(?:of|at|=|:)?\s*(\d*\.?\d+)\s*%/i) ||
+    source.match(/\b(\d*\.?\d+)\s*%\s*slippage\b/i);
+  if (!match) return 100;
+  const pct = Number(match[1]);
+  if (!Number.isFinite(pct) || pct <= 0) return 100;
+  return Math.max(10, Math.min(5000, Math.round(pct * 100)));
+}
+
+function parsePercentageFromText(text) {
+  const source = String(text || "").toLowerCase();
+  const pctMatch = source.match(/\b(\d*\.?\d+)\s*%/);
+  if (pctMatch) return Math.max(0, Math.min(100, Number(pctMatch[1])));
+  if (/\b(half|50 percent|fifty percent)\b/.test(source)) return 50;
+  if (/\b(quarter|25 percent|twenty five percent)\b/.test(source)) return 25;
+  if (/\b(all|max|everything|100 percent)\b/.test(source)) return 100;
+  return null;
+}
+
+function parseSwapAmountSpec(value) {
+  const source = String(value || "").toLowerCase().trim();
+  if (!source) return { type: "missing" };
+  const pctMatch = source.match(/^(\d*\.?\d+)\s*%$/);
+  if (pctMatch) return { type: "percentage", percentage: Math.max(0, Math.min(100, Number(pctMatch[1]))) };
+  const numeric = Number(source);
+  if (Number.isFinite(numeric) && numeric > 0) return { type: "fixed", amount: numeric };
+  if (/\b(half|50 percent|fifty percent)\b/.test(source)) return { type: "percentage", percentage: 50 };
+  if (/\b(quarter|25 percent|twenty five percent)\b/.test(source)) return { type: "percentage", percentage: 25 };
+  if (/\b(all|max|everything|100 percent)\b/.test(source)) return { type: "percentage", percentage: 100 };
+  return { type: "invalid" };
+}
+
+function sanitizeSwapTokenTarget(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^[^\w$]+|[^\w]+$/g, "")
+    .replace(/^\$/, "")
+    .replace(/\b(tokens?|coin|ca|contract|address)\b/gi, "")
+    .trim();
+}
+
+async function resolveMintFromTarget(target) {
+  const value = sanitizeSwapTokenTarget(target);
+  if (!value) return "";
+  if (value.toUpperCase() === "SOL") return SOL_MINT;
+  if (/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(value)) return value;
+  if (window.JupiterSwap) return window.JupiterSwap.resolveMintFromTicker(value);
+  return "";
+}
+
+async function resolveOutputMint(userMessage) {
+  const raw = String(userMessage || "");
+
+  const toMatch = raw.match(/\b(?:to|for|into)\s+(\$?[A-Za-z0-9]{2,44})\b/i);
+  if (toMatch) {
+    const mint = await resolveMintFromTarget(toMatch[1]);
+    if (mint) return mint;
+  }
+
+  const ofMatch = raw.match(/\bof\s+(\$?[A-Za-z0-9]{2,44})\b/i);
+  if (ofMatch) {
+    const mint = await resolveMintFromTarget(ofMatch[1]);
+    if (mint) return mint;
+  }
+
+  const mint = extractTokenAddress(raw);
+  if (mint) return mint;
+
+  const ticker = extractTickerSymbol(raw);
+  if (ticker && window.JupiterSwap) {
+    return window.JupiterSwap.resolveMintFromTicker(ticker);
+  }
+  return "";
+}
+
+async function resolveTradeMint(userMessage) {
+  return resolveOutputMint(userMessage);
+}
+
+function extractSwapPairInstruction(userMessage) {
+  const raw = String(userMessage || "");
+  const match = raw.match(
+    /\b(?:swap|trade|exchange)\s+(all|max|everything|half|quarter|\d*\.?\d+|\d*\.?\d+\s*%)\s+(?:(?:of|from)\s+)?(?:my\s+)?(\$?[A-Za-z0-9]{2,44})\s+(?:to|for|into)\s+(\$?[A-Za-z0-9]{2,44})\b/i
+  );
+  if (!match) return null;
+  return {
+    amountSpec: parseSwapAmountSpec(match[1]),
+    fromToken: sanitizeSwapTokenTarget(match[2]),
+    toToken: sanitizeSwapTokenTarget(match[3]),
+  };
+}
+
+function extractBuyTarget(userMessage) {
+  const raw = String(userMessage || "");
+  const targetWithAmount =
+    raw.match(/\b(?:buy|purchase)\s+(\$?[A-Za-z0-9]{2,44})\s+(?:with|for)\s+\d*\.?\d+\s*sol\b/i) ||
+    raw.match(/\b(?:buy|purchase)\s+(\$?[A-Za-z0-9]{2,44})\s+\d*\.?\d+\s*sol\b/i);
+  if (targetWithAmount) return sanitizeSwapTokenTarget(targetWithAmount[1]);
+  return "";
+}
+
+function extractSellTarget(userMessage) {
+  const raw = String(userMessage || "");
+  const address = extractTokenAddress(raw);
+  if (address && address !== SOL_MINT) return address;
+
+  const ofMatch = raw.match(/\bof\s+(?:this\s+)?(?:my\s+)?(\$?[A-Za-z0-9]{2,44})\b/i);
+  if (ofMatch) {
+    const value = sanitizeSwapTokenTarget(ofMatch[1]);
+    if (value && value.toUpperCase() !== "SOL") return value;
+  }
+
+  const sellMatch = raw.match(
+    /\bsell\s+(?:all|max|everything|half|quarter|\d*\.?\d+\s*%|\d*\.?\d+\s*(?:tokens?)?)?\s*(?:of\s+)?(?:this\s+)?(?:my\s+)?(\$?[A-Za-z0-9]{2,44})\b/i
+  );
+  if (sellMatch) {
+    const value = sanitizeSwapTokenTarget(sellMatch[1]);
+    if (value && value.toUpperCase() !== "SOL" && !/^(for|to|into|tokens?)$/i.test(value)) return value;
+  }
+
+  const ticker = extractTickerSymbol(raw);
+  if (ticker && ticker !== "SOL") return ticker;
+  return "";
+}
+
+function parseSellAmountFromText(userMessage) {
+  const match = String(userMessage || "").match(/\bsell\s+(\d*\.?\d+)\s*(?:tokens?)?\b/i);
+  if (!match) return null;
+  const amount = Number(match[1]);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+async function fetchTokenDecimalsOnChain(mint) {
+  if (!mint || mint === SOL_MINT) return 9;
+  try {
+    const result = await solanaRpcCallPublic("getTokenSupply", [mint, { commitment: "confirmed" }]);
+    const decimals = Number(result?.value?.decimals);
+    if (Number.isFinite(decimals)) return decimals;
+  } catch (_) {}
+  return 6;
+}
+
+function percentOfRawAmount(rawAmount, percentage) {
+  const pctUnits = BigInt(Math.max(0, Math.min(10000, Math.round(Number(percentage) * 100))));
+  const raw = BigInt(String(rawAmount || "0"));
+  return ((raw * pctUnits) / 10000n).toString();
+}
+
+function spendableRawAmount(rawAmount, mint, percentage) {
+  let amount = BigInt(String(rawAmount || "0"));
+  if (percentage !== undefined && percentage !== null) {
+    amount = BigInt(percentOfRawAmount(rawAmount, percentage));
+  }
+  if (mint === SOL_MINT) {
+    const reserve = 10_000_000n;
+    amount = amount > reserve ? amount - reserve : 0n;
+  }
+  return amount.toString();
+}
+
+async function getWalletTokenBalanceRaw(walletAddress, mint) {
+  if (!walletAddress || !mint) return { rawAmount: "0", decimals: mint === SOL_MINT ? 9 : 6, uiAmount: 0 };
+  if (mint === SOL_MINT) {
+    const bal = await solanaRpcCallPublic("getBalance", [walletAddress, { commitment: "confirmed" }]);
+    const rawAmount = String(Number(bal?.value ?? bal) || 0);
+    return { rawAmount, decimals: 9, uiAmount: Number(rawAmount) / 1e9 };
+  }
+
+  const result = await solanaRpcCallPublic("getTokenAccountsByOwner", [
+    walletAddress,
+    { mint },
+    { encoding: "jsonParsed", commitment: "confirmed" },
+  ]);
+  const accounts = Array.isArray(result?.value) ? result.value : [];
+  let rawTotal = 0n;
+  let decimals = null;
+  for (const account of accounts) {
+    const tokenAmount = account?.account?.data?.parsed?.info?.tokenAmount;
+    if (!tokenAmount) continue;
+    rawTotal += BigInt(String(tokenAmount.amount || "0"));
+    if (decimals === null && Number.isFinite(Number(tokenAmount.decimals))) {
+      decimals = Number(tokenAmount.decimals);
+    }
+  }
+  const finalDecimals = decimals === null ? await fetchTokenDecimalsOnChain(mint) : decimals;
+  return {
+    rawAmount: rawTotal.toString(),
+    decimals: finalDecimals,
+    uiAmount: Number(rawTotal) / Math.pow(10, finalDecimals),
+  };
+}
+
+function formatRawTokenAmount(rawAmount, decimals) {
+  const dec = Number.isFinite(Number(decimals)) ? Number(decimals) : 6;
+  const raw = Number(rawAmount);
+  if (!Number.isFinite(raw)) return "—";
+  const value = raw / Math.pow(10, dec);
+  if (value >= 1_000_000) return value.toExponential(2);
+  if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (value >= 1) return value.toLocaleString(undefined, { maximumFractionDigits: 4 });
+  return value.toLocaleString(undefined, { maximumFractionDigits: 8 });
+}
+
+async function fetchTokenSymbolForMint(mint) {
+  try {
+    const res = await fetch(`${DEXSCREENER_API_BASE}/tokens/${encodeURIComponent(mint)}`);
+    if (!res.ok) return { symbol: mint.slice(0, 4) + "…", decimals: 6 };
+    const data = await res.json();
+    const pairs = Array.isArray(data.pairs) ? data.pairs : [];
+    const pair = pairs.find((p) => p.chainId === "solana") || pairs[0];
+    const token = pair?.baseToken?.address === mint ? pair.baseToken : pair?.quoteToken;
+    return {
+      symbol: token?.symbol || mint.slice(0, 4) + "…",
+      decimals: Number(token?.decimals) || 6,
+    };
+  } catch {
+    return { symbol: mint.slice(0, 4) + "…", decimals: 6 };
+  }
+}
+
+async function requestAgentSwap(userMessage) {
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: userMessage,
+      conversationHistory: conversationHistory.slice(-8),
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Swap assistant request failed");
+  return data;
+}
+
+async function buildSwapQuoteWidget(userMessage, quote, side, meta) {
+  const session = WalletAuth.getSession();
+  const inputMint = quote.inputMint || meta.inputMint;
+  const outputMint = quote.outputMint || meta.outputMint;
+  const payingSol = inputMint === SOL_MINT;
+  const tokenMint = payingSol ? outputMint : inputMint;
+  const tokenMeta = await fetchTokenSymbolForMint(tokenMint);
+
+  const inputLabel = payingSol
+    ? `${JupiterSwap.lamportsToSol(quote.inputAmount).toFixed(4)} SOL`
+    : `${formatRawTokenAmount(quote.inputAmount, tokenMeta.decimals)} ${tokenMeta.symbol}`;
+  const outputLabel = payingSol
+    ? `${formatRawTokenAmount(quote.outputAmount, tokenMeta.decimals)} ${tokenMeta.symbol}`
+    : `${JupiterSwap.lamportsToSol(quote.outputAmount).toFixed(4)} SOL`;
+
+  return {
+    kind: "swap_quote_widget",
+    side: side || "buy",
+    quoteResponse: quote.quoteResponse,
+    inputMint,
+    outputMint,
+    inputAmount: quote.inputAmount,
+    outputAmount: quote.outputAmount,
+    priceImpact: quote.priceImpact,
+    slippage: quote.slippage || "1%",
+    inputLabel,
+    outputLabel,
+    walletShort: WalletAuth.truncateAddress(session?.pubkey || ""),
+    textSummary: payingSol
+      ? `Swap ${JupiterSwap.lamportsToSol(quote.inputAmount).toFixed(4)} SOL → ${tokenMeta.symbol}. Confirm in your wallet to execute.`
+      : `Swap ${tokenMeta.symbol} → SOL. Confirm in your wallet to execute.`,
+    assistantNote: meta.assistantNote || "",
+  };
+}
+
+async function buildLocalSwapPayload(userMessage) {
+  const text = String(userMessage || "").toLowerCase();
+  const session = WalletAuth.getSession();
+  const slippageBps = parseSwapSlippageBps(userMessage);
+  let inputMint = "";
+  let outputMint = "";
+  let amountRaw = "";
+  let side = "buy";
+  let assistantNote = "";
+
+  const pair = extractSwapPairInstruction(userMessage);
+  if (pair) {
+    inputMint = await resolveMintFromTarget(pair.fromToken);
+    outputMint = await resolveMintFromTarget(pair.toToken);
+    if (!inputMint || !outputMint) {
+      return "I could not resolve one of those tokens. Use a mint address or a known ticker like SOL, USDC, BONK, WIF, or JUP.";
+    }
+    if (pair.amountSpec.type === "fixed") {
+      const decimals = inputMint === SOL_MINT ? 9 : await fetchTokenDecimalsOnChain(inputMint);
+      amountRaw = String(Math.floor(pair.amountSpec.amount * Math.pow(10, decimals)));
+    } else if (pair.amountSpec.type === "percentage") {
+      const balance = await getWalletTokenBalanceRaw(session.pubkey, inputMint);
+      amountRaw = spendableRawAmount(balance.rawAmount, inputMint, pair.amountSpec.percentage);
+      assistantNote = inputMint === SOL_MINT && pair.amountSpec.percentage === 100
+        ? "Swapping your spendable SOL balance and keeping about 0.01 SOL for fees."
+        : `Swapping ${pair.amountSpec.percentage}% of your detected balance.`;
+    } else {
+      return "Enter a valid amount for the swap.";
+    }
+    side = outputMint === SOL_MINT ? "sell" : "buy";
+  } else if (/\bsell\b/.test(text) && !/\bbuy\b/.test(text)) {
+    const target = extractSellTarget(userMessage);
+    inputMint = await resolveMintFromTarget(target);
+    outputMint = SOL_MINT;
+    side = "sell";
+    if (!inputMint || inputMint === SOL_MINT) {
+      return "I need the token you want to sell. Try `sell half <mint>` or `sell 1000 <mint> for SOL`.";
+    }
+
+    const percentage = parsePercentageFromText(userMessage);
+    if (percentage !== null) {
+      const balance = await getWalletTokenBalanceRaw(session.pubkey, inputMint);
+      if (BigInt(balance.rawAmount || "0") <= 0n) {
+        return "I could not find a balance for that token in your wallet.";
+      }
+      amountRaw = spendableRawAmount(balance.rawAmount, inputMint, percentage);
+      assistantNote = `Selling ${percentage}% of your detected token balance.`;
+    } else {
+      const amount = parseSellAmountFromText(userMessage);
+      if (!amount) {
+        return "For sells, specify an amount or percentage, e.g. `sell half <mint>`, `sell 50% <mint>`, or `sell 1000 <mint>`.";
+      }
+      const decimals = await fetchTokenDecimalsOnChain(inputMint);
+      amountRaw = String(Math.floor(amount * Math.pow(10, decimals)));
+      try {
+        const balance = await getWalletTokenBalanceRaw(session.pubkey, inputMint);
+        if (BigInt(balance.rawAmount || "0") < BigInt(amountRaw)) {
+          return `Insufficient token balance. Wallet has ~${balance.uiAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} tokens.`;
+        }
+      } catch (_) {}
+    }
+  } else {
+    const buyTarget = extractBuyTarget(userMessage);
+    outputMint = buyTarget ? await resolveMintFromTarget(buyTarget) : await resolveOutputMint(userMessage);
+    inputMint = SOL_MINT;
+    side = "buy";
+    if (!outputMint) {
+      return "I need a token to swap into. Use a mint address or ticker. Examples: `swap 0.2 SOL to USDC` or `buy 0.5 SOL of <mint>`.";
+    }
+    const solAmount = parseSolAmountFromText(userMessage);
+    amountRaw = String(JupiterSwap.solToLamports(solAmount));
+  }
+
+  if (!amountRaw || BigInt(String(amountRaw)) <= 0n) {
+    return "That amount is too small to swap.";
+  }
+
+  if (inputMint === outputMint) {
+    return "Input and output tokens are the same. Check the token you want to receive.";
+  }
+
+  try {
+    const balance = await getWalletTokenBalanceRaw(session.pubkey, inputMint);
+    const feeReserveRaw = inputMint === SOL_MINT ? BigInt(10_000_000) : 0n;
+    if (BigInt(balance.rawAmount || "0") < BigInt(String(amountRaw)) + feeReserveRaw) {
+      if (inputMint === SOL_MINT) {
+        return `Insufficient SOL. Wallet has ~${balance.uiAmount.toFixed(4)} SOL (keep ~0.01 SOL for fees).`;
+      }
+      return `Insufficient token balance. Wallet has ~${balance.uiAmount.toLocaleString(undefined, { maximumFractionDigits: 6 })} tokens.`;
+    }
+  } catch (_) {}
+
+  const quote = await JupiterSwap.fetchQuote(inputMint, outputMint, amountRaw, slippageBps);
+  return buildSwapQuoteWidget(userMessage, quote, side, { assistantNote, inputMint, outputMint });
+}
+
+async function getOnChainSwapPayload(userMessage) {
+  if (!isOnChainTradeIntent(userMessage)) return null;
+  if (!WalletAuth.isConnected()) {
+    return "Connect your wallet first to execute on-chain swaps. Use the Connect Wallet button in the nav, then try again.";
+  }
+  if (!window.JupiterSwap) {
+    return "Swap module failed to load. Refresh the page and try again.";
+  }
+
+  try {
+    const localPayload = await buildLocalSwapPayload(userMessage);
+    if (localPayload) return localPayload;
+  } catch (err) {
+    console.warn("[swap] local parser failed, falling back to agent route", err);
+  }
+
+  const text = String(userMessage || "").toLowerCase();
+  const isSell = /\bsell\b/.test(text) && !/\bbuy\b/.test(text);
+
+  let inputMint = SOL_MINT;
+  let outputMint = "";
+  let amountLamports = 0;
+  let assistantNote = "";
+
+  try {
+    const agent = await requestAgentSwap(userMessage);
+    if (agent.requiresConfirmation && agent.confirmationData?.quoteResponse) {
+      assistantNote = agent.response || "";
+      const cd = agent.confirmationData;
+      return buildSwapQuoteWidget(userMessage, {
+        inputMint: cd.inputMint,
+        outputMint: cd.outputMint,
+        inputAmount: cd.inputAmount,
+        outputAmount: cd.outputAmount,
+        priceImpact: cd.priceImpact,
+        slippage: cd.slippage,
+        quoteResponse: cd.quoteResponse,
+      }, cd.inputMint === SOL_MINT ? "buy" : "sell", { assistantNote });
+    }
+  } catch (err) {
+    console.warn("[swap] agent route failed, falling back to local parser", err);
+  }
+
+  outputMint = await resolveOutputMint(userMessage);
+  if (!outputMint) {
+    return "I need a token to swap into — use a mint address or ticker. Examples: `swap 0.2 SOL to USDC` or `buy 0.5 SOL of <mint>`.";
+  }
+
+  if (isSell) {
+    inputMint = outputMint;
+    outputMint = SOL_MINT;
+    const pctMatch = text.match(/(\d*\.?\d+)\s*%/);
+    if (pctMatch) {
+      return "Selling by % requires reading your token balance — for now use an exact token amount or say `sell all <mint> for sol` with the mint in the message.";
+    }
+    const tokenAmountMatch = userMessage.match(/(\d*\.?\d+)\s*(?:tokens?)?(?:\s+of)?/i);
+    const tokenMeta = await fetchTokenSymbolForMint(inputMint);
+    const rawAmount = Number(tokenAmountMatch?.[1] || 0);
+    if (!rawAmount) {
+      return "For sells, specify how much to sell, e.g. `sell 1000000 tokens of <mint>` (use your token amount).";
+    }
+    amountLamports = Math.floor(rawAmount * Math.pow(10, tokenMeta.decimals || 6));
+  } else {
+    const solAmount = parseSolAmountFromText(userMessage);
+    amountLamports = JupiterSwap.solToLamports(solAmount);
+    inputMint = SOL_MINT;
+    outputMint = outputMint;
+  }
+
+  if (inputMint === outputMint) {
+    return "Input and output tokens are the same — check the mint address.";
+  }
+
+  try {
+    const bal = await solanaRpcCallPublic("getBalance", [WalletAuth.getSession().pubkey, { commitment: "confirmed" }]);
+    const solBal = (Number(bal?.value ?? bal) || 0) / 1e9;
+    if (inputMint === SOL_MINT && solBal < JupiterSwap.lamportsToSol(amountLamports) + 0.01) {
+      return `Insufficient SOL. Wallet has ~${solBal.toFixed(4)} SOL (keep ~0.01 SOL for fees).`;
+    }
+  } catch (_) {}
+
+  try {
+    const quote = await JupiterSwap.fetchQuote(inputMint, outputMint, amountLamports, 100);
+    return buildSwapQuoteWidget(userMessage, quote, isSell ? "sell" : "buy", { assistantNote });
+  } catch (err) {
+    const msg = (err && err.message) || "Could not fetch swap quote.";
+    return msg;
+  }
 }
 
 function parseUsdNumber(value) {
@@ -447,7 +926,7 @@ async function fetchLaunchpadVolumeWidgetData(userMessage) {
 
   function getSnapshotStore() {
     try {
-      const raw = localStorage.getItem("lykeion_trench_snapshots_v1") || localStorage.getItem("lyceum_trench_snapshots_v1");
+      const raw = localStorage.getItem("PAPER_trench_snapshots_v1") || localStorage.getItem("Paper_trench_snapshots_v1");
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch {
@@ -457,7 +936,7 @@ async function fetchLaunchpadVolumeWidgetData(userMessage) {
 
   function writeSnapshotStore(store) {
     try {
-      localStorage.setItem("lykeion_trench_snapshots_v1", JSON.stringify(store.slice(-60)));
+      localStorage.setItem("PAPER_trench_snapshots_v1", JSON.stringify(store.slice(-60)));
     } catch {}
   }
 
@@ -515,7 +994,7 @@ async function fetchLaunchpadVolumeWidgetData(userMessage) {
 
   async function fetchGraduatedCountsFromSolanaTracker() {
     const apiKey = String(
-      (window?.LYKEION_SECRETS && window.LYKEION_SECRETS.solanaTracker) ||
+      (window?.PAPER_SECRETS && window.PAPER_SECRETS.solanaTracker) ||
         window?.SOLANATRACKER_API_KEY ||
         ""
     ).trim();
@@ -685,7 +1164,7 @@ async function solanaRpcCall(method, params) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jsonrpc: "2.0",
-          id: "lykeion-wallet",
+          id: "paper-wallet",
           method,
           params,
         }),
@@ -1645,7 +2124,7 @@ async function getWalletAnalysisPayload(userMessage) {
 
   if (!getHeliusKey()) {
     return errorResult(
-      "Wallet analysis needs a Helius API key. Set HELIUS_API_KEY in Vercel (or .env locally), or use window.LYKEION_SECRETS.helius via local-secrets.js. " +
+      "Wallet analysis needs a Helius API key. Set HELIUS_API_KEY in Vercel (or .env locally), or use window.PAPER_SECRETS.helius via local-secrets.js. " +
         "Get a key at https://www.helius.dev/"
     );
   }
@@ -2048,8 +2527,8 @@ window.getTopTokensForLaunchpad = async function getTopTokensForLaunchpad(launch
 
 async function requestOpenAIReply(messages) {
   const base =
-    typeof window !== "undefined" && window.LYKEION_API_BASE
-      ? String(window.LYKEION_API_BASE).replace(/\/$/, "")
+    typeof window !== "undefined" && window.PAPER_API_BASE
+      ? String(window.PAPER_API_BASE).replace(/\/$/, "")
       : "";
   const proxyUrl = `${base}/api/openai-chat`;
 
@@ -2077,8 +2556,8 @@ async function requestOpenAIReply(messages) {
   if (!OPENAI_API_KEY) {
     throw new Error(
       "OpenAI is not configured. Start the app with the Node server (npm run dev), set OPENAI_API_KEY in .env, " +
-        "and open this page from the server URL (e.g. http://localhost:3000/pages/lykeion-ai). " +
-        "Optional: set window.LYKEION_SECRETS.openai only for local browser-direct calls (not recommended for production)."
+        "and open this page from the server URL (e.g. http://localhost:3000/pages/paper-ai). " +
+        "Optional: set window.PAPER_SECRETS.openai only for local browser-direct calls (not recommended for production)."
     );
   }
 
@@ -2115,10 +2594,14 @@ async function requestOpenAIReply(messages) {
 
 async function getBotResponse(userMessage) {
   if (isNameIntent(userMessage)) {
-    return "I'm Lykeion Assistant.";
+    return "I'm paper Assistant.";
   }
   if (isCapabilitiesIntent(userMessage)) {
     return getCapabilitiesResponse();
+  }
+  if (isOnChainTradeIntent(userMessage)) {
+    const swapPayload = await getOnChainSwapPayload(userMessage);
+    if (swapPayload) return swapPayload;
   }
   const priceQuery = extractPriceQuery(userMessage);
   if (priceQuery) return getCryptoPriceResponse(priceQuery);
@@ -2145,7 +2628,7 @@ async function getBotResponse(userMessage) {
     messages.push({
       role: "system",
       content:
-        "Relevant Lykeion course excerpts:\n" + courseContext + "\n\n" +
+        "Relevant paper course excerpts:\n" + courseContext + "\n\n" +
         "Treat this course context as high-priority when it matches the user question.",
     });
   }
@@ -2180,7 +2663,7 @@ async function getBotResponse(userMessage) {
         retryMessages.push({
           role: "system",
           content:
-            "Relevant Lykeion course excerpts:\n" + retryCourse + "\n\n" +
+            "Relevant paper course excerpts:\n" + retryCourse + "\n\n" +
             "Prioritize these excerpts when they answer the question directly.",
         });
       }
@@ -2202,7 +2685,7 @@ async function getBotResponse(userMessage) {
   return firstReply || "Sorry, I couldn't generate a response.";
 }
 
-function initLykeionChatUi() {
+function initPaperChatUi() {
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("user-input");
   const sendBtn = document.getElementById("send-btn");
@@ -2211,20 +2694,32 @@ function initLykeionChatUi() {
 
   if (!chatForm || !chatInput) return;
 
-  // Auth: redirect if logged out, load history if logged in
-  window.__firebaseReadyPromise
+  document.querySelectorAll("[data-prompt]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const prompt = String(button.getAttribute("data-prompt") || "").trim();
+      if (!prompt) return;
+      chatInput.value = prompt;
+      chatInput.focus();
+      chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+    });
+  });
+
+  // Auth: redirect if not connected, load history if connected
+  if (!WalletAuth.requireAuth()) return;
+
+  currentUserId = WalletAuth.getUserId();
+  loadChatHistory();
+
+  window.addEventListener('paper:wallet-connected', function () {
+    window.location.reload();
+  });
+
+  window.__paperDataReadyPromise
     .then(function () {
-      firebase.auth().onAuthStateChanged(async (user) => {
-        if (!user) {
-          window.location.href = "login";
-          return;
-        }
-        currentUserId = user.uid;
-        await loadChatHistory();
-      });
+      return WalletAuth.ensureWalletUserProfile(currentUserId, WalletAuth.getSession()?.walletName);
     })
     .catch(function (err) {
-      console.error("Firebase init failed:", err);
+      console.warn('Wallet profile sync skipped:', err);
     });
 
   async function loadChatHistory() {
@@ -2298,6 +2793,10 @@ function initLykeionChatUi() {
         if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary, false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
+      } else if (isSwapQuotePayload(botMessage)) {
+        renderSwapQuoteWidget(typingEl, botMessage);
+        conversationHistory.push({ role: "assistant", content: botMessage.textSummary || "Swap quote ready." });
+        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || "Swap quote ready.", false);
       } else {
         const formatted = formatAssistantText(
           botMessage || "Sorry, I couldn't generate a response.",
@@ -2330,7 +2829,7 @@ function initLykeionChatUi() {
 
 // Expose deep-analysis helpers to the chat UI layer (chat-ui.js)
 if (typeof window !== "undefined") {
-  window.LykeionDeep = {
+  window.PaperDeep = {
     computeTradeHeatmap,
     describeHeatmap,
     computeAvgHoldTime,
@@ -2342,7 +2841,7 @@ if (typeof window !== "undefined") {
 // This script may be injected after DOMContentLoaded (via bootstrap-secrets-remote),
 // so fire init immediately if the DOM is already parsed.
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initLykeionChatUi);
+  document.addEventListener("DOMContentLoaded", initPaperChatUi);
 } else {
-  initLykeionChatUi();
+  initPaperChatUi();
 }

@@ -2285,93 +2285,6 @@ body.page-demo-terminal #term-trade-card .trade-submit.sell {
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24), 0 7px 18px rgba(239, 69, 99, .12) !important;
 }
 
-body.page-demo-terminal .term-holders {
-    flex: 0 0 auto;
-    padding: 14px;
-    border: 1px solid var(--term-border);
-    background: var(--term-bg);
-}
-
-body.page-demo-terminal .term-holders__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-body.page-demo-terminal .term-holders__head span {
-    color: var(--term-text-faint);
-    font-size: 8px;
-    font-weight: 700;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-}
-
-body.page-demo-terminal .term-holders__head h3 {
-    margin: 2px 0 0;
-    color: var(--term-text-emphasis);
-    font-size: 14px;
-}
-
-body.page-demo-terminal .term-holders__list {
-    display: grid;
-    gap: 1px;
-}
-
-body.page-demo-terminal .term-holder {
-    display: grid;
-    grid-template-columns: 22px 82px minmax(50px, 1fr) 54px;
-    align-items: center;
-    gap: 8px;
-    min-height: 34px;
-    padding: 0 8px;
-    color: var(--term-text-muted);
-    background: rgba(255, 255, 255, .018);
-    text-decoration: none;
-}
-
-body.page-demo-terminal .term-holder:hover {
-    background: rgba(255, 255, 255, .04);
-}
-
-body.page-demo-terminal .term-holder__rank {
-    color: var(--term-text-faint);
-    font-size: 10px;
-}
-
-body.page-demo-terminal .term-holder__wallet,
-body.page-demo-terminal .term-holder strong {
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
-}
-
-body.page-demo-terminal .term-holder strong {
-    color: var(--term-text-emphasis);
-    text-align: right;
-}
-
-body.page-demo-terminal .term-holder__bar {
-    height: 3px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .07);
-}
-
-body.page-demo-terminal .term-holder__bar i {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--term-buy);
-}
-
-body.page-demo-terminal .term-holders__empty {
-    padding: 22px 12px;
-    color: var(--term-text-faint);
-    font-size: 11px;
-    text-align: center;
-}
-
 /* Final mobile terminal fit: wrap token data instead of creating a clipped rail. */
 @media (max-width: 640px) {
     body.page-demo-terminal {
@@ -2521,5 +2434,136 @@ body.page-demo-terminal .term-holders__empty {
     body.page-demo-terminal .term-chart-wrap--gt .term-chart-inner,
     body.page-demo-terminal .term-chart-wrap--gt #term-chart.term-chart--gt {
         min-height: clamp(250px, 42dvh, 420px) !important;
+    }
+}
+
+/* Mobile readability pass: use the phone width and keep all tap targets comfortably sized. */
+@media (max-width: 640px) {
+    body.page-demo-terminal .landing-nav--terminal {
+        width: calc(100vw - 16px) !important;
+        max-width: none !important;
+        min-height: 58px !important;
+        padding: 7px 9px !important;
+    }
+
+    body.page-demo-terminal .landing-nav__logo {
+        width: auto !important;
+        height: 34px !important;
+    }
+
+    body.page-demo-terminal .demo-wallet-pill {
+        min-height: 38px !important;
+        padding: 0 13px !important;
+        border-radius: 999px !important;
+        font-size: 13px !important;
+    }
+
+    body.page-demo-terminal .term-shell {
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin-bottom: 0 !important;
+        padding-right: 4px !important;
+        padding-left: 4px !important;
+    }
+
+    body.page-demo-terminal .term-hero {
+        border-radius: 10px 10px 0 0 !important;
+    }
+
+    body.page-demo-terminal .ticker-strip {
+        grid-template-columns: 52px minmax(0, 1fr) !important;
+        gap: 10px 12px !important;
+        padding: 13px 12px !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-icon {
+        width: 52px !important;
+        height: 52px !important;
+        border-radius: 11px !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-ticker {
+        font-size: 19px !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-name {
+        font-size: 13px !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-title {
+        grid-template-columns: auto minmax(0, 1fr) 32px auto !important;
+        padding-right: 0 !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-copy-ca {
+        position: static !important;
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        justify-self: end !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+    }
+
+    body.page-demo-terminal .ticker-pnl-share {
+        display: inline-grid !important;
+        grid-column: 4 !important;
+        grid-row: 1 !important;
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        place-items: center !important;
+        border-radius: 999px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats {
+        gap: 8px !important;
+        margin-top: 8px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat {
+        min-height: 28px !important;
+        gap: 5px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat-label {
+        font-size: 9px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat-value {
+        font-size: 14px !important;
+    }
+
+    body.page-demo-terminal .mobile-term-tab {
+        min-height: 46px !important;
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
+
+    body.page-demo-terminal .term-chart-row,
+    body.page-demo-terminal .term-chart-wrap--gt .term-chart-inner,
+    body.page-demo-terminal .term-chart-wrap--gt #term-chart.term-chart--gt {
+        min-height: clamp(420px, 55dvh, 560px) !important;
+    }
+
+    body.page-demo-terminal #term-trade-card {
+        padding: 10px !important;
+    }
+
+    body.page-demo-terminal .mqt-mode {
+        min-height: 44px !important;
+        font-size: 15px !important;
+    }
+
+    body.page-demo-terminal .mqt-preset-rows {
+        min-height: 48px !important;
+    }
+
+    body.page-demo-terminal .mqt-chip {
+        min-height: 44px !important;
+        padding: 10px 3px !important;
+        font-size: 13px !important;
     }
 }

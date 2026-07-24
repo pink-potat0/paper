@@ -1761,26 +1761,54 @@ app.get('/api/token/holders', async (req, res) => {
       return payload.result;
     };
 
-    const [largest, supplyResult] = await Promise.all([
-      rpc('getTokenLargestAccounts', [mint, { commitment: 'confirmed' }]),
-      rpc('getTokenSupply', [mint, { commitment: 'confirmed' }]),
-    ]);
-    const accounts = Array.isArray(largest?.value) ? largest.value.slice(0, 20) : [];
-    const accountInfo = accounts.length
-      ? await rpc('getMultipleAccounts', [
-          accounts.map((account) => account.address),
-          { encoding: 'jsonParsed', commitment: 'confirmed' },
-        ])
-      : { value: [] };
+    const supplyResult = await rpc('getTokenSupply', [mint, { commitment: 'confirmed' }]);
     const supply = Number(supplyResult?.value?.amount) || 0;
     const byOwner = new Map();
 
-    accounts.forEach((account, index) => {
-      const owner = String(accountInfo?.value?.[index]?.data?.parsed?.info?.owner || account.address || '').trim();
-      const amount = Number(account.amount) || 0;
-      if (!owner || amount <= 0) return;
-      byOwner.set(owner, (byOwner.get(owner) || 0) + amount);
-    });
+    const heliusKey = process.env.HELIUS_API_KEY || process.env.HELIUS_KEY;
+    if (heliusKey) {
+      try {
+        const heliusResponse = await fetch(`https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(heliusKey)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            id: 'paper-token-holders',
+            method: 'getTokenAccounts',
+            params: { mint, page: 1, limit: 1000, options: { showZeroBalance: false } },
+          }),
+        });
+        const heliusPayload = await heliusResponse.json();
+        const tokenAccounts = Array.isArray(heliusPayload?.result?.token_accounts)
+          ? heliusPayload.result.token_accounts
+          : [];
+        tokenAccounts.forEach((account) => {
+          const owner = String(account.owner || '').trim();
+          const amount = Number(account.amount) || 0;
+          if (!owner || amount <= 0) return;
+          byOwner.set(owner, (byOwner.get(owner) || 0) + amount);
+        });
+      } catch (_) {
+        // Fall back to Solana's largest-account response below.
+      }
+    }
+
+    if (!byOwner.size) {
+      const largest = await rpc('getTokenLargestAccounts', [mint, { commitment: 'confirmed' }]);
+      const accounts = Array.isArray(largest?.value) ? largest.value.slice(0, 20) : [];
+      const accountInfo = accounts.length
+        ? await rpc('getMultipleAccounts', [
+            accounts.map((account) => account.address),
+            { encoding: 'jsonParsed', commitment: 'confirmed' },
+          ])
+        : { value: [] };
+      accounts.forEach((account, index) => {
+        const owner = String(accountInfo?.value?.[index]?.data?.parsed?.info?.owner || account.address || '').trim();
+        const amount = Number(account.amount) || 0;
+        if (!owner || amount <= 0) return;
+        byOwner.set(owner, (byOwner.get(owner) || 0) + amount);
+      });
+    }
 
     const holders = Array.from(byOwner.entries())
       .map(([owner, amount]) => ({
@@ -1789,7 +1817,7 @@ app.get('/api/token/holders', async (req, res) => {
         percentage: supply > 0 ? (amount / supply) * 100 : 0,
       }))
       .sort((a, b) => Number(b.amount) - Number(a.amount))
-      .slice(0, 10);
+      .slice(0, 30);
 
     res.setHeader('Cache-Control', 'public, max-age=20, s-maxage=30, stale-while-revalidate=60');
     return res.json({ mint, supply: String(supply), holders, updatedAt: new Date().toISOString() });

@@ -1180,11 +1180,12 @@
                 const mcText = mcRaw > 0 ? `$${formatCompactNumber(mcRaw)}` : 'N/A';
                 const volSource = Number(token?.volume_24h || token?.volume || token?.total_volume || 0);
                 const volText = volSource > 0 ? `$${formatCompactNumber(volSource)}` : 'N/A';
-                const iconUrl = token?.image_uri ? escapeHtml(ipfsToHttp(token.image_uri)) : '';
+                const imageUrls = tokenImageCandidates(token?.image_uri);
+                const iconUrl = imageUrls.length ? escapeHtml(imageUrls[0]) : '';
                 const createdMs = parseCreatedMs(token?.created_timestamp);
                 const ageText = escapeHtml(formatAgeFromMs(createdMs));
                 const phase = escapeHtml(token?._phase || 'new');
-                const imageFallbacks = imageCandidates(token?.image_uri).filter((url) => url !== iconUrl);
+                const imageFallbacks = imageUrls.slice(1);
                 const socialTags = [
                     buildSocialTag('x', token?.twitter, 'X (Twitter)'),
                     buildSocialTag('web', token?.website, 'Website'),
@@ -1201,7 +1202,7 @@
                     <article class="demo-token-row" data-phase="${phase}" ${createdMs ? `data-created-ms="${createdMs}"` : ''} ${mint ? `data-mint="${mint}"` : ''} data-mc-usd="${mcRawAttr}" data-symbol="${symbol}" data-name="${name}" data-image="${iconUrl}">
                         <div class="demo-token-identity">
                             ${iconUrl
-                                ? `<img class="demo-token-icon" src="${iconUrl}" data-fallbacks="${escapeHtml(imageFallbacks.join('|'))}" data-fallback-label="${symbolInitials}" alt="${symbol} logo" loading="lazy" referrerpolicy="no-referrer" onerror="retryTokenImage(this)" />`
+                                ? `<img class="demo-token-icon" src="${iconUrl}" data-fallbacks="${escapeHtml(imageFallbacks.join('|'))}" data-fallback-label="${symbolInitials}" alt="${symbol} logo" loading="eager" decoding="async" referrerpolicy="no-referrer" onerror="retryTokenImage(this)" />`
                                 : `<span class="demo-token-icon">${symbolInitials}</span>`
                             }
                             ${mintButton}
@@ -1252,6 +1253,14 @@
                     `https://cloudflare-ipfs.com/ipfs/${cidPath}`,
                     `https://ipfs.io/ipfs/${cidPath}`
                 ];
+            }
+
+            function tokenImageCandidates(uri) {
+                const direct = imageCandidates(uri);
+                if (!direct.length) return [];
+                if (/^https:\/\/image\.solanatracker\.io\/proxy\?/i.test(direct[0])) return direct;
+                const proxied = `https://image.solanatracker.io/proxy?url=${encodeURIComponent(direct[0])}`;
+                return [proxied, ...direct];
             }
 
             window.retryTokenImage = function retryTokenImage(image) {
@@ -1473,6 +1482,12 @@
                 tabColumns.forEach((column) => {
                     const count = document.querySelector(`[data-count-for="${column.dataset.tab}"]`);
                     if (count) count.textContent = String(column.querySelectorAll('.demo-token-row[data-mint]').length);
+                    column.querySelectorAll('img.demo-token-icon:not([data-fast-fallback])').forEach((image) => {
+                        image.dataset.fastFallback = '1';
+                        window.setTimeout(() => {
+                            if (image.isConnected && !image.complete) window.retryTokenImage(image);
+                        }, 3000);
+                    });
                 });
             }
 
@@ -1511,7 +1526,12 @@
                 const candidates = imageCandidates(uri);
                 for (const metadataUrl of candidates) {
                     try {
-                        const res = await fetch(metadataUrl, { cache: 'no-store' });
+                        const controller = new AbortController();
+                        const timeout = window.setTimeout(() => controller.abort(), 3500);
+                        const res = await fetch(metadataUrl, {
+                            cache: 'force-cache',
+                            signal: controller.signal
+                        }).finally(() => window.clearTimeout(timeout));
                         if (!res.ok) continue;
                         const meta = await res.json();
                         const token = tokenMap.get(mint);
@@ -2231,8 +2251,32 @@
                     const image = ipfsToHttp(tok.image || tok.image_uri || '');
                     const pools = Array.isArray(item.pools) ? item.pools : [];
                     const primary = pools.find((p) => /pumpswap/i.test(String(p?.market || ''))) || pools[0] || {};
-                    const mc = Number(primary.marketCap?.usd || item.marketCap?.usd || 0) || 0;
-                    const volume = Number(primary.volume?.usd || primary.volume?.h24 || item.volume_24h || tok.volume_24h || 0) || 0;
+                    const mc = Number(
+                        primary.marketCap?.usd
+                        ?? primary.marketCapUsd
+                        ?? primary.marketCap
+                        ?? primary.fdv?.usd
+                        ?? primary.fdv
+                        ?? item.marketCap?.usd
+                        ?? item.marketCapUsd
+                        ?? item.marketCap
+                        ?? item.fdv
+                        ?? tok.marketCapUsd
+                        ?? tok.marketCap
+                        ?? 0
+                    ) || 0;
+                    const volume = Number(
+                        primary.volume?.usd
+                        ?? primary.volume?.h24
+                        ?? primary.volume_24h
+                        ?? item.volume_24h
+                        ?? item.volume24h
+                        ?? item.volume
+                        ?? tok.volume_24h
+                        ?? tok.volume24h
+                        ?? tok.volume
+                        ?? 0
+                    ) || 0;
                     const shortMint = mint ? `${mint.slice(0, 4)}…${mint.slice(-4)}` : '';
                     const href = mint ? `demo-trading-terminal.html?chartonly=1#${encodeURIComponent(mint)}` : '#';
                     return `

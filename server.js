@@ -6,7 +6,6 @@ const crypto = require('crypto');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { Connection, PublicKey, LAMPORTS_PER_SOL } = require('@solana/web3.js');
-const { OnlinePumpSdk } = require('@pump-fun/pump-sdk');
 require('dotenv').config();
 
 const app = express();
@@ -914,6 +913,9 @@ function getSolanaRpcUrl() {
 }
 
 async function getCreatorRewardPool(force = false) {
+  // Keep the heavyweight Pump SDK out of serverless startup. Most routes do
+  // not need it, and loading it eagerly can crash constrained function boots.
+  const { OnlinePumpSdk } = require('@pump-fun/pump-sdk');
   const basePoolSol = Math.max(0, finiteStat(process.env.REWARD_POOL_BASE_SOL, 0.5));
   const sharePercent = Math.max(0, Math.min(100, finiteStat(process.env.CREATOR_REWARD_SHARE_PERCENT, 45)));
   const creatorWallet = String(process.env.PAPER_CREATOR_WALLET || '').trim();

@@ -1,8 +1,11 @@
 # paper
 
+[![CI](https://github.com/pink-potat0/paper/actions/workflows/ci.yml/badge.svg)](https://github.com/pink-potat0/paper/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Learn to trade Solana memecoins through lessons, practice tools, and an AI trading assistant.
 
-Live: [paper.app](https://paper.app)
+Live: [trypaper.fun](https://www.trypaper.fun)
 
 `$paper` CA: `3GWpjiGgTo2RckTLRo71AJijvxkhescZ4QgSGWdPbpump`
 
@@ -82,6 +85,8 @@ node --check server.js
 
 `npm test` runs a route/API smoke test against the Express app on a temporary port and temporary SQLite fallback database. It sets `ALLOW_SQLITE_FALLBACK=true` for the test process only. It does not require private keys; OpenAI endpoints may report "not configured" during local smoke tests.
 
+Every push and pull request to `main` runs these checks through GitHub Actions.
+
 ## Routes
 
 - `/`
@@ -105,5 +110,7 @@ Vercel production must use MongoDB via `MONGODB_URI`. SQLite files are not durab
 ## Security Notes
 
 - `OPENAI_API_KEY` stays server-side through `/api/openai-chat` and `/api/chat`.
-- `/api/paper-secrets` currently exposes Helius/Solana Tracker browser integration keys. Prefer restricted keys and move high-value calls behind server proxies before a larger public launch.
+- Provider credentials stay server-side and browser features use scoped API routes.
 - Never commit `.env`, local SQLite fallback files, temporary browser profiles, or server logs.
+
+See [SECURITY.md](SECURITY.md) for private vulnerability reporting and [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.

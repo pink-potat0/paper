@@ -1,4 +1,4 @@
-// Fetches GET /api/paper-secrets and merges helius + solanaTracker into window.PAPER_SECRETS (Vercel / .env).
+// Fetches non-secret provider capability flags. Actual credentials stay server-side.
 // Sets window.__paperSecretsPromise — await this before reading PAPER_SECRETS in inline scripts.
 (function () {
   var base =
@@ -9,10 +9,8 @@
   function mergeSecretsJson(json) {
     if (!json || typeof json !== "object") return;
     var patch = {};
-    var h = String(json.helius || "").trim();
-    var st = String(json.solanaTracker || "").trim();
-    if (h) patch.helius = h;
-    if (st) patch.solanaTracker = st;
+    if (json.heliusConfigured) patch.helius = "server-proxy";
+    if (json.solanaTrackerConfigured) patch.solanaTracker = "server-proxy";
     if (Object.keys(patch).length) {
       window.PAPER_SECRETS = Object.assign(window.PAPER_SECRETS || {}, patch);
     }

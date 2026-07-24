@@ -1,7 +1,7 @@
 {
   "name": "paper",
   "version": "1.0.0",
-  "description": "",
+  "description": "Solana learning, paper trading, wallet intelligence, and token research platform.",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
@@ -10,8 +10,16 @@
     "test": "node scripts/smoke-test.cjs"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "pinkpotato",
+  "license": "MIT",
+  "homepage": "https://www.trypaper.fun",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pink-potat0/paper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pink-potat0/paper/issues"
+  },
   "type": "commonjs",
   "engines": {
     "node": "24.x"

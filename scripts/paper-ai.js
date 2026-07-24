@@ -40,7 +40,7 @@ const PUBLIC_SOLANA_RPC_ENDPOINTS = [
 function getSolanaRpcEndpoints() {
   const k = getHeliusKey();
   return [
-    ...(k ? [`https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(k)}`] : []),
+    ...(k ? ["/api/helius/rpc"] : []),
     ...PUBLIC_SOLANA_RPC_ENDPOINTS,
   ];
 }
@@ -1007,8 +1007,8 @@ async function fetchLaunchpadVolumeWidgetData(userMessage) {
     };
     const entries = Object.entries(marketMap);
     const settled = await Promise.allSettled(entries.map(async ([id, market]) => {
-      const url = `https://data.solanatracker.io/tokens/multi/graduated?limit=500&markets=${encodeURIComponent(market)}&minCreatedAt=${encodeURIComponent(sinceIso)}`;
-      const res = await fetch(url, { headers: { "x-api-key": apiKey } });
+      const url = `/api/solana-tracker?path=${encodeURIComponent("/tokens/multi/graduated")}&limit=500&markets=${encodeURIComponent(market)}&minCreatedAt=${encodeURIComponent(sinceIso)}`;
+      const res = await fetch(url);
       if (!res.ok) return [id, 0];
       const arr = await res.json();
       return [id, Array.isArray(arr) ? arr.length : 0];
@@ -1205,7 +1205,7 @@ const WALLET_TX_PER_PAGE = 100;
 async function fetchWalletHoldings(address) {
   const hk = getHeliusKey();
   if (!hk) return { holdings: [], solLamports: 0 };
-  const url = `https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(hk)}`;
+  const url = "/api/helius/rpc";
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -1254,13 +1254,12 @@ async function fetchWalletHoldings(address) {
 async function fetchAllWalletTransactions(address) {
   const hk = getHeliusKey();
   if (!hk) return [];
-  const base = `https://api.helius.xyz/v0`;
   const all = [];
   let beforeSig;
   for (let page = 0; page < WALLET_TX_PAGES; page++) {
     let url =
-      `${base}/addresses/${encodeURIComponent(address)}/transactions` +
-      `?api-key=${encodeURIComponent(hk)}&limit=${WALLET_TX_PER_PAGE}`;
+      `/api/helius/transactions/${encodeURIComponent(address)}` +
+      `?limit=${WALLET_TX_PER_PAGE}`;
     if (beforeSig) url += `&before=${encodeURIComponent(beforeSig)}`;
     try {
       const res = await fetch(url);
@@ -1538,7 +1537,7 @@ async function fetchTokenMetadataBatch(mints) {
   const result = new Map();
   const hk = getHeliusKey();
   if (!hk || !mints.length) return result;
-  const url = `https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(hk)}`;
+  const url = "/api/helius/rpc";
   const BATCH = 50;
   for (let i = 0; i < mints.length; i += BATCH) {
     const chunk = mints.slice(i, i + BATCH);
@@ -1566,7 +1565,7 @@ async function fetchTokenImage(tokenAddress) {
   const hkImg = getHeliusKey();
   if (!tokenAddress || !hkImg) return "";
   try {
-    const url = `https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(hkImg)}`;
+    const url = "/api/helius/rpc";
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -2075,7 +2074,7 @@ async function findSideWallets(wallet, events, solPeers) {
 
   const confirmed = await Promise.all(ranked.map(async (c) => {
     try {
-      const url = `https://api.helius.xyz/v0/addresses/${encodeURIComponent(c.address)}/transactions?api-key=${encodeURIComponent(hk)}&limit=25`;
+      const url = `/api/helius/transactions/${encodeURIComponent(c.address)}?limit=25`;
       const res = await fetch(url);
       if (!res.ok) return { address: c.address, reasons: Array.from(c.reasons), tradesTokens: false, sharedMints: 0 };
       const data = await res.json();

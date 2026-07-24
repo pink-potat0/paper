@@ -1471,17 +1471,104 @@ function getConfigStatus() {
 }
 
 // Non-secret client config (still treat as sensitive — anyone can call this URL).
-// Set HELIUS_API_KEY and SOLANA_TRACKER_API_KEY in Vercel / .env; the assistant page merges them into window.PAPER_SECRETS.
+// Provider configuration is reported as booleans; credentials never leave the server.
 app.get('/api/paper-secrets', (req, res) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.json({
-    helius: process.env.HELIUS_API_KEY || process.env.HELIUS_KEY || '',
-    solanaTracker:
+    heliusConfigured: Boolean(process.env.HELIUS_API_KEY || process.env.HELIUS_KEY),
+    solanaTrackerConfigured: Boolean(
       process.env.SOLANA_TRACKER_API_KEY ||
       process.env.SOLANA_TRACKER_KEY ||
-      process.env.SOLANATRACKER_API_KEY ||
-      '',
+      process.env.SOLANATRACKER_API_KEY
+    ),
   });
+});
+
+app.get('/api/solana-tracker', async (req, res) => {
+  try {
+    const apiKey =
+      process.env.SOLANA_TRACKER_API_KEY ||
+      process.env.SOLANA_TRACKER_KEY ||
+      process.env.SOLANATRACKER_API_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'Solana Tracker is not configured' });
+    const upstreamPath = String(req.query.path || '').trim();
+    const allowedPath = /^\/(?:search|tokens\/(?:multi\/)?graduated|trades\/[1-9A-HJ-NP-Za-km-z]{32,44}|chart\/[1-9A-HJ-NP-Za-km-z]{32,44})$/;
+    if (!allowedPath.test(upstreamPath)) return res.status(400).json({ error: 'Unsupported Solana Tracker route' });
+
+    const upstream = new URL(`https://data.solanatracker.io${upstreamPath}`);
+    Object.entries(req.query).forEach(([key, value]) => {
+      if (key === 'path' || Array.isArray(value) || value == null) return;
+      upstream.searchParams.set(key, String(value).slice(0, 200));
+    });
+    const response = await fetch(upstream, {
+      headers: { 'x-api-key': apiKey, accept: 'application/json' },
+    });
+    const body = await response.text();
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/json');
+    res.setHeader('Cache-Control', 'private, max-age=5');
+    return res.send(body);
+  } catch (error) {
+    return res.status(502).json({ error: error.message || 'Solana Tracker request failed' });
+  }
+});
+
+app.post('/api/helius/rpc', async (req, res) => {
+  try {
+    const apiKey = process.env.HELIUS_API_KEY || process.env.HELIUS_KEY;
+    if (!apiKey) return res.status(503).json({ error: 'Helius is not configured' });
+    const method = String(req.body?.method || '');
+    const allowedMethods = new Set([
+      'getAsset',
+      'getAssetBatch',
+      'getAssetsByOwner',
+      'getBalance',
+      'getTokenAccountsByOwner',
+      'getSignaturesForAddress',
+      'getTransaction',
+    ]);
+    if (!allowedMethods.has(method)) return res.status(400).json({ error: 'Unsupported Helius method' });
+
+    const response = await fetch(`https://mainnet.helius-rpc.com/?api-key=${encodeURIComponent(apiKey)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: req.body?.id || 'paper-helius',
+        method,
+        params: req.body?.params && typeof req.body.params === 'object' ? req.body.params : [],
+      }),
+    });
+    const body = await response.text();
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/json');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(body);
+  } catch (error) {
+    return res.status(502).json({ error: error.message || 'Helius RPC request failed' });
+  }
+});
+
+app.get('/api/helius/transactions/:address', async (req, res) => {
+  try {
+    const apiKey = process.env.HELIUS_API_KEY || process.env.HELIUS_KEY;
+    const address = String(req.params.address || '').trim();
+    if (!apiKey) return res.status(503).json({ error: 'Helius is not configured' });
+    if (!validWalletAddress(address)) return res.status(400).json({ error: 'Invalid wallet address' });
+
+    const upstream = new URL(`https://api.helius.xyz/v0/addresses/${encodeURIComponent(address)}/transactions`);
+    upstream.searchParams.set('api-key', apiKey);
+    upstream.searchParams.set('limit', String(Math.max(1, Math.min(100, Number(req.query.limit) || 100))));
+    if (req.query.before) upstream.searchParams.set('before', String(req.query.before).slice(0, 100));
+    const response = await fetch(upstream, { headers: { accept: 'application/json' } });
+    const body = await response.text();
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/json');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.send(body);
+  } catch (error) {
+    return res.status(502).json({ error: error.message || 'Helius transactions request failed' });
+  }
 });
 
 app.get('/api/config-status', (req, res) => {

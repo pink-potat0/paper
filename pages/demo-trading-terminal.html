@@ -1458,6 +1458,13 @@
             function getSolanaTrackerKey() {
                 return String((typeof window !== 'undefined' && window.PAPER_SECRETS && window.PAPER_SECRETS.solanaTracker) || '').trim();
             }
+            function solanaTrackerProxyUrl(rawUrl) {
+                const upstream = new URL(rawUrl);
+                const proxy = new URL('/api/solana-tracker', window.location.origin);
+                proxy.searchParams.set('path', upstream.pathname);
+                upstream.searchParams.forEach((value, key) => proxy.searchParams.set(key, value));
+                return proxy.toString();
+            }
             const SOL_PRICE_URLS = [
                 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd',
                 'https://lite-api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112',
@@ -4169,10 +4176,7 @@
                     const u = new URL('https://data.solanatracker.io/trades/' + encodeURIComponent(tokenMint));
                     u.searchParams.set('sortDirection', 'DESC');
                     if (cursor != null && cursor !== '') u.searchParams.set('cursor', String(cursor));
-                    const res = await fetch(u.toString(), {
-                        cache: 'no-store',
-                        headers: { 'x-api-key': getSolanaTrackerKey() },
-                    });
+                    const res = await fetch(solanaTrackerProxyUrl(u.toString()), { cache: 'no-store' });
                     if (!res.ok) {
                         if (page === 0) throw new Error('trades HTTP ' + res.status);
                         break;
@@ -4229,10 +4233,7 @@
                 if (!getSolanaTrackerKey()) return;
                 try {
                     const url = 'https://data.solanatracker.io/trades/' + encodeURIComponent(MINT) + '?sortDirection=DESC';
-                    const res = await fetch(url, {
-                        cache: 'no-store',
-                        headers: { 'x-api-key': getSolanaTrackerKey() },
-                    });
+                    const res = await fetch(solanaTrackerProxyUrl(url), { cache: 'no-store' });
                     if (!res.ok) return;
                     const json = await res.json();
                     const trades = Array.isArray(json?.trades)
@@ -4253,7 +4254,7 @@
                 if (!getSolanaTrackerKey()) {
                     if (typeof window.refreshPaperSecrets === 'function') await window.refreshPaperSecrets();
                     if (!getSolanaTrackerKey()) {
-                        console.warn('[SolanaTracker] Add SOLANA_TRACKER_API_KEY in Vercel / .env; served via /api/paper-secrets.');
+                        console.warn('[SolanaTracker] Add SOLANA_TRACKER_API_KEY in Vercel or .env.');
                         return;
                     }
                 }
@@ -4342,10 +4343,7 @@
                         : chartBucketSec <= 300 ? '5m' : '15m';
                     const url = 'https://data.solanatracker.io/chart/' + encodeURIComponent(MINT)
                         + '?type=' + bucketLabel;
-                    const res = await fetch(url, {
-                        cache: 'no-store',
-                        headers: { 'x-api-key': getSolanaTrackerKey() },
-                    });
+                    const res = await fetch(solanaTrackerProxyUrl(url), { cache: 'no-store' });
                     if (!res.ok) return;
                     const json = await res.json();
                     const arr = Array.isArray(json?.oclhv) ? json.oclhv

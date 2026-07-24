@@ -1905,6 +1905,142 @@
     }
 }
 
+/* Final mobile shell and data-density corrections. */
+@media (max-width: 640px) {
+    .landing-header {
+        padding: max(10px, env(safe-area-inset-top)) 10px 0 !important;
+    }
+
+    .landing-nav {
+        width: 100% !important;
+        max-width: none !important;
+        min-height: 58px !important;
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        border-radius: 18px !important;
+        box-sizing: border-box !important;
+    }
+
+    .landing-nav__brand {
+        min-width: 0 !important;
+        gap: 7px !important;
+    }
+
+    .landing-nav__brand--back {
+        flex: 0 1 auto !important;
+    }
+
+    .landing-nav__back {
+        width: 36px !important;
+        height: 36px !important;
+        flex: 0 0 36px !important;
+    }
+
+    .landing-nav__logo {
+        width: auto !important;
+        max-width: 112px !important;
+        height: 34px !important;
+        object-fit: contain !important;
+    }
+
+    .landing-nav__actions {
+        min-width: 0 !important;
+        gap: 7px !important;
+        margin-left: auto !important;
+    }
+
+    .landing-nav__actions .nav-metal-pill,
+    .landing-nav__actions .nav-metal-pill.wallet-connected-pill,
+    .landing-nav__connect {
+        width: auto !important;
+        max-width: 128px !important;
+        min-width: 0 !important;
+        min-height: 38px !important;
+        padding: 7px 11px !important;
+        overflow: hidden !important;
+        font-size: 11px !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .landing-nav__theme {
+        width: 38px !important;
+        height: 38px !important;
+        flex: 0 0 38px !important;
+    }
+
+    .page-leaderboard .dashboard-main {
+        padding-right: 14px !important;
+        padding-left: 14px !important;
+        padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .lp-leaderboard--page {
+        padding-top: 8px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__head {
+        padding-inline: 4px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__head h1 {
+        font-size: clamp(28px, 9vw, 36px) !important;
+        line-height: 1.08 !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__frame {
+        width: 100% !important;
+        overflow: hidden !important;
+        border-radius: 16px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__row {
+        grid-template-columns: 28px minmax(0, 1fr) 58px 86px !important;
+        gap: 7px !important;
+        padding: 11px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__row > :nth-child(3) {
+        display: none !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__row--head {
+        min-height: 46px !important;
+        font-size: 9px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__trader {
+        gap: 7px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__trader i {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .lp-leaderboard--page .lp-leaderboard__pnl {
+        font-size: 11px !important;
+        white-space: nowrap !important;
+    }
+
+    .lb-view-tabs {
+        padding: 8px !important;
+        gap: 6px !important;
+    }
+
+    .lb-view-tab {
+        min-height: 42px !important;
+        padding: 8px 13px !important;
+        font-size: 13px !important;
+    }
+
+    .lb-payout-hero,
+    .lb-info-panel {
+        border-radius: 16px !important;
+    }
+}
+
 /* Static metallic shine CTA inspired by Magic UI / Aceternity button patterns */
 .page-home--premium .metal-shine-button {
     --metal-shine-width: auto;

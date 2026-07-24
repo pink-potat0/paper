@@ -9871,3 +9871,106 @@ body:not(.page-home):not(.page-demo-trading) .main-content {
         grid-template-columns: 1fr;
     }
 }
+
+/* Global mobile resilience. Keep this final so page-level desktop rules cannot win. */
+html,
+body {
+    max-width: 100%;
+}
+
+img,
+video,
+canvas {
+    max-width: 100%;
+}
+
+@media (max-width: 640px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        overflow-x: hidden;
+        padding-bottom: calc(86px + env(safe-area-inset-bottom));
+    }
+
+    main,
+    .dashboard-main,
+    .course-main,
+    .ai-main,
+    .user-stats-main {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        max-width: 100%;
+        font-size: max(16px, 1em);
+    }
+
+    .dash-dock-wrap {
+        bottom: max(8px, env(safe-area-inset-bottom)) !important;
+        padding: 0 10px !important;
+    }
+
+    .dash-dock {
+        width: min(100%, 286px) !important;
+        min-height: 62px !important;
+        gap: 8px !important;
+        padding: 8px !important;
+        border-radius: 16px !important;
+    }
+
+    .dash-dock__item {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 11px !important;
+    }
+
+    .dash-dock__icon {
+        width: 27px !important;
+        height: 27px !important;
+    }
+
+    .dash-dock__icon svg {
+        width: 25px !important;
+        height: 25px !important;
+    }
+
+    .dash-dock__tooltip,
+    .dash-dock-orbit {
+        display: none !important;
+    }
+
+    .modal,
+    .wallet-modal,
+    .portfolio-modal,
+    .pnl-card-dialog {
+        max-width: calc(100vw - 24px) !important;
+        max-height: calc(100dvh - 24px) !important;
+    }
+
+    .wallet-modal-root {
+        padding: 12px !important;
+    }
+
+    .wallet-modal-dialog {
+        width: calc(100vw - 24px) !important;
+        max-width: 400px !important;
+        max-height: calc(100dvh - 24px) !important;
+    }
+
+    .wallet-modal-header {
+        padding: 18px 16px 14px !important;
+    }
+
+    .wallet-modal-body {
+        padding: 0 10px 14px !important;
+    }
+}

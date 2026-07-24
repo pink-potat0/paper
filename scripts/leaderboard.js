@@ -97,7 +97,8 @@
         loading = true;
         try {
             if (global.PaperLeaderboardSync) await global.PaperLeaderboardSync.syncNow(false);
-            var response = await fetch('/api/leaderboard?limit=100', {
+            var isPreview = document.body.classList.contains('page-home');
+            var response = await fetch('/api/leaderboard?limit=' + (isPreview ? '5' : '100'), {
                 credentials: 'same-origin',
                 cache: 'no-store'
             });
@@ -105,6 +106,9 @@
             var data = await response.json();
             render(Array.isArray(data.traders) ? data.traders : []);
         } catch (_) {
+            if (document.body.classList.contains('page-home')) {
+                render([]);
+            }
         } finally {
             loading = false;
         }

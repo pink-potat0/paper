@@ -1977,6 +1977,8 @@
 
     .lp-leaderboard--page {
         padding-top: 8px !important;
+        padding-right: 0 !important;
+        padding-left: 0 !important;
     }
 
     .lp-leaderboard--page .lp-leaderboard__head {
@@ -2038,6 +2040,71 @@
     .lb-payout-hero,
     .lb-info-panel {
         border-radius: 16px !important;
+    }
+
+    .page-home--premium .lp-leaderboard {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 32px 12px 64px !important;
+    }
+
+    .page-home--premium .lp-leaderboard__head {
+        margin-bottom: 20px !important;
+        padding-inline: 8px;
+    }
+
+    .page-home--premium .lp-leaderboard__frame {
+        width: 100% !important;
+        border-radius: 16px !important;
+    }
+
+    .page-home--premium .lp-leaderboard__row {
+        grid-template-columns: 26px minmax(0, 1fr) 54px 82px !important;
+        gap: 7px !important;
+        padding: 12px 10px !important;
+    }
+
+    .page-home--premium .lp-leaderboard__row > :nth-child(3) {
+        display: none !important;
+    }
+
+    .page-home--premium .lp-leaderboard__trader {
+        gap: 7px;
+    }
+
+    .page-home--premium .lp-leaderboard__pnl {
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .lb-payouts {
+        overflow: hidden !important;
+    }
+
+    .lb-payouts__table {
+        width: 100%;
+        min-height: 250px !important;
+    }
+
+    .lb-payouts__row {
+        min-width: 0 !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 8px !important;
+        padding: 12px 14px !important;
+    }
+
+    .lb-payouts__row--head {
+        display: none !important;
+    }
+
+    .lb-payouts__empty {
+        width: 100%;
+        min-width: 0 !important;
+        padding: 38px 24px 44px !important;
+    }
+
+    .lb-payouts__empty p {
+        max-width: 280px;
     }
 }
 

@@ -2689,6 +2689,7 @@ function initPaperChatUi() {
   const chatForm = document.getElementById("chat-form");
   const chatInput = document.getElementById("user-input");
   const sendBtn = document.getElementById("send-btn");
+  const chatContainer = document.getElementById("chat-container");
   const introContent = document.querySelector(".ai-container > .ai-message-content");
   let hasSentFirstMessage = false;
 
@@ -2704,11 +2705,22 @@ function initPaperChatUi() {
     });
   });
 
-  // Auth: redirect if not connected, load history if connected
+  // Chat is intentionally ephemeral: authenticate the wallet, but never load or
+  // persist messages. The in-memory conversation disappears with this page.
   if (!WalletAuth.requireAuth()) return;
 
   currentUserId = WalletAuth.getUserId();
-  loadChatHistory();
+
+  window.addEventListener("pagehide", function () {
+    conversationHistory.length = 0;
+    if (chatContainer) chatContainer.replaceChildren();
+    if (introContent) introContent.style.display = "";
+  });
+
+  window.addEventListener("pageshow", function (event) {
+    // Browsers may restore a closed chat from the back-forward cache.
+    if (event.persisted) window.location.reload();
+  });
 
   window.addEventListener('paper:wallet-connected', function () {
     window.location.reload();
@@ -2721,23 +2733,6 @@ function initPaperChatUi() {
     .catch(function (err) {
       console.warn('Wallet profile sync skipped:', err);
     });
-
-  async function loadChatHistory() {
-    if (!currentUserId) return;
-    const history = await getChatHistory(currentUserId, 40);
-    if (!history.length) return;
-
-    if (introContent) introContent.style.display = "none";
-    hasSentFirstMessage = true;
-
-    for (const msg of history) {
-      appendMessage(msg.message, msg.isUser ? "user" : "bot");
-      conversationHistory.push({
-        role: msg.isUser ? "user" : "assistant",
-        content: msg.message,
-      });
-    }
-  }
 
   chatForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -2755,7 +2750,6 @@ function initPaperChatUi() {
 
     appendMessage(userMessage, "user");
     conversationHistory.push({ role: "user", content: userMessage });
-    if (currentUserId) saveChatMessage(currentUserId, userMessage, true);
 
     chatInput.value = "";
     setInputDisabled(true);
@@ -2766,44 +2760,37 @@ function initPaperChatUi() {
       if (isPriceQuotePayload(botMessage)) {
         renderPriceWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary || "Price snapshot." });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || "Price snapshot.", false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
       } else if (isWalletAnalysisPayload(botMessage)) {
         renderWalletAnalysisWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary || `Wallet ${botMessage.wallet || ""}`.trim() });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || `Wallet ${botMessage.wallet || ""}`.trim(), false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
       } else if (isHotTokensPayload(botMessage)) {
         renderHotTokensWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary || "Hot Solana tokens snapshot." });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || "Hot Solana tokens snapshot.", false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
       } else if (isLaunchpadVolumePayload(botMessage)) {
         renderLaunchpadVolumeWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary || "Daily trench stats snapshot." });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || "Daily trench stats snapshot.", false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
       } else if (isTokenInfoPayload(botMessage)) {
         renderTokenWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary, false);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");
       } else if (isSwapQuotePayload(botMessage)) {
         renderSwapQuoteWidget(typingEl, botMessage);
         conversationHistory.push({ role: "assistant", content: botMessage.textSummary || "Swap quote ready." });
-        if (currentUserId) saveChatMessage(currentUserId, botMessage.textSummary || "Swap quote ready.", false);
       } else {
         const formatted = formatAssistantText(
           botMessage || "Sorry, I couldn't generate a response.",
           userMessage
         );
         conversationHistory.push({ role: "assistant", content: formatted });
-        if (currentUserId) saveChatMessage(currentUserId, formatted, false);
         await typewriterToElement(typingEl, formatted);
         typingEl.classList.remove("typing");
         typingEl.classList.add("typewriter-done");

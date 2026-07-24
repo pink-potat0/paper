@@ -2284,3 +2284,242 @@ body.page-demo-terminal #term-trade-card .trade-submit.sell {
     background: linear-gradient(180deg, #ff7189, #ef4563) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24), 0 7px 18px rgba(239, 69, 99, .12) !important;
 }
+
+body.page-demo-terminal .term-holders {
+    flex: 0 0 auto;
+    padding: 14px;
+    border: 1px solid var(--term-border);
+    background: var(--term-bg);
+}
+
+body.page-demo-terminal .term-holders__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+body.page-demo-terminal .term-holders__head span {
+    color: var(--term-text-faint);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+body.page-demo-terminal .term-holders__head h3 {
+    margin: 2px 0 0;
+    color: var(--term-text-emphasis);
+    font-size: 14px;
+}
+
+body.page-demo-terminal .term-holders__list {
+    display: grid;
+    gap: 1px;
+}
+
+body.page-demo-terminal .term-holder {
+    display: grid;
+    grid-template-columns: 22px 82px minmax(50px, 1fr) 54px;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 8px;
+    color: var(--term-text-muted);
+    background: rgba(255, 255, 255, .018);
+    text-decoration: none;
+}
+
+body.page-demo-terminal .term-holder:hover {
+    background: rgba(255, 255, 255, .04);
+}
+
+body.page-demo-terminal .term-holder__rank {
+    color: var(--term-text-faint);
+    font-size: 10px;
+}
+
+body.page-demo-terminal .term-holder__wallet,
+body.page-demo-terminal .term-holder strong {
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+body.page-demo-terminal .term-holder strong {
+    color: var(--term-text-emphasis);
+    text-align: right;
+}
+
+body.page-demo-terminal .term-holder__bar {
+    height: 3px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .07);
+}
+
+body.page-demo-terminal .term-holder__bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--term-buy);
+}
+
+body.page-demo-terminal .term-holders__empty {
+    padding: 22px 12px;
+    color: var(--term-text-faint);
+    font-size: 11px;
+    text-align: center;
+}
+
+/* Final mobile terminal fit: wrap token data instead of creating a clipped rail. */
+@media (max-width: 640px) {
+    body.page-demo-terminal {
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    }
+
+    body.page-demo-terminal .term-shell {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        padding-right: max(8px, env(safe-area-inset-right)) !important;
+        padding-bottom: 0 !important;
+        padding-left: max(8px, env(safe-area-inset-left)) !important;
+    }
+
+    body.page-demo-terminal .term-hero,
+    body.page-demo-terminal .term-main {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body.page-demo-terminal .term-main,
+    body.page-demo-terminal .term-col.term-right {
+        flex: 0 0 auto !important;
+    }
+
+    body.page-demo-terminal .ticker-strip {
+        display: grid !important;
+        grid-template-columns: 40px minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 8px 10px !important;
+        min-height: 0 !important;
+        padding: 10px 12px !important;
+        overflow: hidden !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-icon {
+        display: block !important;
+        grid-row: 1 !important;
+        width: 40px !important;
+        height: 40px !important;
+        border: 1px solid var(--term-border) !important;
+        border-radius: 8px !important;
+        object-fit: cover !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-title {
+        display: grid !important;
+        grid-template-columns: auto minmax(0, 1fr) !important;
+        align-items: center !important;
+        gap: 5px 9px !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        position: relative !important;
+        padding-right: 30px !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-ticker {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 17px !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-name {
+        min-width: 0;
+        overflow: hidden;
+        font-size: 11px !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.page-demo-terminal .ticker-stats {
+        display: grid !important;
+        grid-column: 1 / -1 !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        margin: 5px 0 0 !important;
+        gap: 12px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat {
+        min-width: 0 !important;
+        min-height: 20px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat-label {
+        font-size: 8px !important;
+        white-space: nowrap;
+    }
+
+    body.page-demo-terminal .ticker-stats .stat-value {
+        width: auto;
+        overflow: hidden;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    body.page-demo-terminal .ticker-pnl-share,
+    body.page-demo-terminal .ticker-links,
+    body.page-demo-terminal .terminal-feed-status,
+    body.page-demo-terminal .pos-strip--header {
+        display: none !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-copy-ca {
+        position: absolute !important;
+        top: -2px !important;
+        right: 0 !important;
+        display: inline-grid !important;
+        width: 26px !important;
+        height: 26px !important;
+        min-width: 26px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        place-items: center !important;
+        border: 1px solid var(--term-border) !important;
+        border-radius: 7px !important;
+        background: rgba(255, 255, 255, .03) !important;
+        color: var(--term-text-muted) !important;
+        touch-action: manipulation;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-copy-ca-label {
+        display: none !important;
+    }
+
+    body.page-demo-terminal .ticker-strip .t-copy-ca-icon {
+        font-size: 13px !important;
+    }
+
+    body.page-demo-terminal .term-chart-row,
+    body.page-demo-terminal .term-chart-wrap--gt .term-chart-inner,
+    body.page-demo-terminal .term-chart-wrap--gt #term-chart.term-chart--gt {
+        min-height: clamp(250px, 42dvh, 420px) !important;
+    }
+}

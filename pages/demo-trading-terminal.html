@@ -1419,6 +1419,16 @@
             </section>
         </aside>
     </main>
+        <section class="term-holders" id="term-holders" aria-labelledby="term-holders-title">
+            <div class="term-holders__head">
+                <div>
+                    <span>Distribution</span>
+                    <h3 id="term-holders-title">Top holders</h3>
+                </div>
+                <span class="term-holders__status" id="term-holders-status">Loading…</span>
+            </div>
+            <div class="term-holders__list" id="term-holders-list" aria-live="polite"></div>
+        </section>
     </div>
 
     <script>
@@ -1788,6 +1798,40 @@
             const termLinksEl = document.getElementById('term-links');
             const termCopyCaEl = document.getElementById('term-copy-ca');
             const termCopyCaLabelEl = document.getElementById('term-copy-ca-label');
+            const termHoldersListEl = document.getElementById('term-holders-list');
+            const termHoldersStatusEl = document.getElementById('term-holders-status');
+
+            async function refreshTopHolders() {
+                if (!termHoldersListEl) return;
+                try {
+                    const response = await fetch('/api/token/holders?mint=' + encodeURIComponent(MINT), {
+                        cache: 'no-store',
+                    });
+                    if (!response.ok) throw new Error('Holder data unavailable');
+                    const payload = await response.json();
+                    const holders = Array.isArray(payload.holders) ? payload.holders.slice(0, 10) : [];
+                    if (!holders.length) {
+                        termHoldersListEl.innerHTML = '<div class="term-holders__empty">No holder data available.</div>';
+                        if (termHoldersStatusEl) termHoldersStatusEl.textContent = 'No data';
+                        return;
+                    }
+                    termHoldersListEl.innerHTML = holders.map((holder, index) => {
+                        const owner = String(holder.owner || '');
+                        const shortOwner = owner.length > 10 ? owner.slice(0, 5) + '…' + owner.slice(-4) : owner;
+                        const percentage = Number(holder.percentage) || 0;
+                        return '<a class="term-holder" href="https://solscan.io/account/' + encodeURIComponent(owner) + '" target="_blank" rel="noopener noreferrer">' +
+                            '<span class="term-holder__rank">' + (index + 1) + '</span>' +
+                            '<span class="term-holder__wallet">' + escapeHtml(shortOwner) + '</span>' +
+                            '<span class="term-holder__bar"><i style="width:' + Math.min(100, percentage).toFixed(2) + '%"></i></span>' +
+                            '<strong>' + percentage.toFixed(2) + '%</strong>' +
+                            '</a>';
+                    }).join('');
+                    if (termHoldersStatusEl) termHoldersStatusEl.textContent = holders.length + ' wallets';
+                } catch (_) {
+                    termHoldersListEl.innerHTML = '<div class="term-holders__empty">Could not load holders. Try again shortly.</div>';
+                    if (termHoldersStatusEl) termHoldersStatusEl.textContent = 'Unavailable';
+                }
+            }
             if (termCopyCaEl) {
                 termCopyCaEl.addEventListener('click', async (e) => {
                     e.preventDefault();
@@ -4378,6 +4422,7 @@
             renderTxs();
             renderWalletHud();
             renderChartAnnotations();
+            refreshTopHolders();
 
             refreshSolPrice()
                 .then(() => {

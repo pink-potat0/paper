@@ -1186,7 +1186,7 @@
                 ].filter(Boolean).join('');
                 const shortMint = mint ? `${mint.slice(0, 4)}..${mint.slice(-4)}` : '';
                 const mintButton = mint
-                    ? `<button class="demo-token-mint demo-token-copy" type="button" data-ca="${mint}" title="Copy contract">${shortMint}</button>`
+                    ? `<button class="demo-token-mint demo-token-copy" type="button" data-ca="${mint}" title="Copy contract address" aria-label="Copy ${symbol} contract address"><span class="demo-token-copy__label">${shortMint}</span><span class="demo-token-copy__icon" aria-hidden="true">⧉</span></button>`
                     : '';
 
                 const mcRawAttr = mcRaw > 0 ? mcRaw : 0;
@@ -2132,10 +2132,15 @@
                 if (!ca) return;
                 const ok = await copyToClipboard(ca);
                 if (ok) {
-                    const prevText = copyButton.textContent;
-                    copyButton.textContent = 'copied';
+                    const label = copyButton.querySelector('.demo-token-copy__label');
+                    const prevText = label ? label.textContent : copyButton.textContent;
+                    if (label) label.textContent = 'Copied';
+                    else copyButton.textContent = 'Copied';
+                    copyButton.classList.add('is-copied');
                     window.setTimeout(() => {
-                        copyButton.textContent = prevText;
+                        if (label) label.textContent = prevText;
+                        else copyButton.textContent = prevText;
+                        copyButton.classList.remove('is-copied');
                     }, 900);
                 }
             };

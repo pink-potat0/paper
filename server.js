@@ -1657,6 +1657,61 @@ app.get('/api/dashboard/stats', async (req, res) => {
   }
 });
 
+app.get('/api/token/holders', async (req, res) => {
+  try {
+    const mint = String(req.query.mint || '').trim();
+    if (!validWalletAddress(mint)) return res.status(400).json({ error: 'Invalid token mint' });
+
+    const rpcUrl = getSolanaRpcUrl();
+    const rpc = async (method, params) => {
+      const response = await fetch(rpcUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', id: `paper-${method}`, method, params }),
+      });
+      const payload = await response.json();
+      if (!response.ok || payload.error) throw new Error(payload?.error?.message || `${method} failed`);
+      return payload.result;
+    };
+
+    const [largest, supplyResult] = await Promise.all([
+      rpc('getTokenLargestAccounts', [mint, { commitment: 'confirmed' }]),
+      rpc('getTokenSupply', [mint, { commitment: 'confirmed' }]),
+    ]);
+    const accounts = Array.isArray(largest?.value) ? largest.value.slice(0, 20) : [];
+    const accountInfo = accounts.length
+      ? await rpc('getMultipleAccounts', [
+          accounts.map((account) => account.address),
+          { encoding: 'jsonParsed', commitment: 'confirmed' },
+        ])
+      : { value: [] };
+    const supply = Number(supplyResult?.value?.amount) || 0;
+    const byOwner = new Map();
+
+    accounts.forEach((account, index) => {
+      const owner = String(accountInfo?.value?.[index]?.data?.parsed?.info?.owner || account.address || '').trim();
+      const amount = Number(account.amount) || 0;
+      if (!owner || amount <= 0) return;
+      byOwner.set(owner, (byOwner.get(owner) || 0) + amount);
+    });
+
+    const holders = Array.from(byOwner.entries())
+      .map(([owner, amount]) => ({
+        owner,
+        amount: String(amount),
+        percentage: supply > 0 ? (amount / supply) * 100 : 0,
+      }))
+      .sort((a, b) => Number(b.amount) - Number(a.amount))
+      .slice(0, 10);
+
+    res.setHeader('Cache-Control', 'public, max-age=20, s-maxage=30, stale-while-revalidate=60');
+    return res.json({ mint, supply: String(supply), holders, updatedAt: new Date().toISOString() });
+  } catch (error) {
+    console.error('Token holders error:', error);
+    return res.status(503).json({ error: error.message || 'Could not load token holders' });
+  }
+});
+
 async function getLatestSolanaBlockhash() {
   const rpcUrl = getSolanaRpcUrl();
   const response = await fetch(rpcUrl, {

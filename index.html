@@ -19,7 +19,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="page-home page-home--premium">
+<body class="page-home page-home--premium leaderboard-live-loading">
     <div class="lp-bg" id="lp-bg" aria-hidden="true">
         <div class="lp-orb lp-orb--1" aria-hidden="true"></div>
         <div class="lp-orb lp-orb--2" aria-hidden="true"></div>
@@ -255,40 +255,8 @@
                         <span role="columnheader">Win rate</span>
                         <span role="columnheader">P&amp;L</span>
                     </div>
-                    <div class="lp-leaderboard__row lp-leaderboard__row--1" role="row">
-                        <span class="lp-leaderboard__rank" role="cell">1</span>
-                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> paperalpha</span>
-                        <span class="lp-leaderboard__stat" role="cell">47</span>
-                        <span class="lp-leaderboard__stat" role="cell">71%</span>
-                        <span class="lp-leaderboard__pnl is-up" role="cell">+14.2 SOL</span>
-                    </div>
-                    <div class="lp-leaderboard__row lp-leaderboard__row--2" role="row">
-                        <span class="lp-leaderboard__rank" role="cell">2</span>
-                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> solstice</span>
-                        <span class="lp-leaderboard__stat" role="cell">38</span>
-                        <span class="lp-leaderboard__stat" role="cell">68%</span>
-                        <span class="lp-leaderboard__pnl is-up" role="cell">+11.6 SOL</span>
-                    </div>
-                    <div class="lp-leaderboard__row lp-leaderboard__row--3" role="row">
-                        <span class="lp-leaderboard__rank" role="cell">3</span>
-                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> memelab</span>
-                        <span class="lp-leaderboard__stat" role="cell">52</span>
-                        <span class="lp-leaderboard__stat" role="cell">64%</span>
-                        <span class="lp-leaderboard__pnl is-up" role="cell">+9.8 SOL</span>
-                    </div>
-                    <div class="lp-leaderboard__row lp-leaderboard__row--4" role="row">
-                        <span class="lp-leaderboard__rank" role="cell">4</span>
-                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> curve_reader</span>
-                        <span class="lp-leaderboard__stat" role="cell">29</span>
-                        <span class="lp-leaderboard__stat" role="cell">62%</span>
-                        <span class="lp-leaderboard__pnl is-up" role="cell">+7.4 SOL</span>
-                    </div>
-                    <div class="lp-leaderboard__row lp-leaderboard__row--5" role="row">
-                        <span class="lp-leaderboard__rank" role="cell">5</span>
-                        <span class="lp-leaderboard__trader" role="cell"><i aria-hidden="true"></i> zero_rug</span>
-                        <span class="lp-leaderboard__stat" role="cell">41</span>
-                        <span class="lp-leaderboard__stat" role="cell">59%</span>
-                        <span class="lp-leaderboard__pnl is-up" role="cell">+5.9 SOL</span>
+                    <div class="lp-leaderboard__row lb-live-empty" role="row">
+                        <span role="cell">Loading live trader stats…</span>
                     </div>
                 </div>
                 <a href="/pages/leaderboard" class="lp-leaderboard__cta">View full leaderboard →</a>
@@ -296,12 +264,9 @@
         </section>
     </main>
 
-    <footer class="footer footer--landing lp-footer">
-        <p>&copy; 2026 pinkpotato · paper</p>
-    </footer>
-
     <script src="scripts/interactive-dots.js?v=boxes-2"></script>
     <script src="scripts/landing-premium.js?v=nav-7"></script>
+    <script src="scripts/leaderboard.js?v=home-live-1"></script>
     <script src="/scripts/vercel-analytics.js"></script>
 </body>
 </html>

@@ -1994,21 +1994,6 @@ h1 {
     margin-top: 102px;
 }
 
-.cpotato-signature {
-    position: fixed;
-    left: 50%;
-    bottom: 16px;
-    transform: translateX(-50%);
-    z-index: 85;
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: lowercase;
-    color: rgba(250, 250, 250, 0.5);
-    font-family: "Inter", sans-serif;
-    pointer-events: none;
-    user-select: none;
-}
-
 .ai-main-wrapper {
     position: relative;
     z-index: 2;
@@ -3946,13 +3931,18 @@ h1 {
 }
 
 .demo-token-copy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 22px;
     background: transparent;
     border: none;
     color: var(--text-accent-muted);
     font-size: 9px;
     border-radius: 0;
     width: fit-content;
-    padding: 0;
+    padding: 2px 4px;
     cursor: pointer;
     font-family: ui-monospace, "Cascadia Code", monospace;
 }
@@ -3960,6 +3950,28 @@ h1 {
 .demo-token-copy:hover {
     color: rgba(var(--accent-rgb), 0.9);
     border-color: transparent;
+}
+
+.demo-token-copy__icon {
+    font-size: 11px;
+    line-height: 1;
+}
+
+.demo-token-copy.is-copied {
+    color: var(--profit);
+}
+
+@media (max-width: 760px) {
+    .page-demo-trading .demo-token-copy {
+        min-width: 58px;
+        min-height: 28px;
+        padding: 4px 6px;
+        border: 1px solid var(--border-subtle);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.025);
+        font-size: 9px;
+        touch-action: manipulation;
+    }
 }
 
 .demo-token-age {
@@ -9769,11 +9781,6 @@ body:not(.page-home):not(.page-demo-trading) .main-content {
     border-radius: 12px;
 }
 
-.page-ai .cpotato-signature {
-    bottom: 10px;
-    z-index: 1;
-}
-
 @media (max-width: 980px) {
     .page-ai {
         overflow: auto;
@@ -9972,5 +9979,37 @@ canvas {
 
     .wallet-modal-body {
         padding: 0 10px 14px !important;
+    }
+
+    .page-ai .ai-page-shell {
+        width: calc(100vw - 20px);
+        min-height: 0;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
+
+    .page-ai .ai-container {
+        height: calc(100dvh - var(--landing-header-clearance, 92px) - 92px);
+        min-height: 460px;
+        overflow: hidden;
+    }
+
+    .page-ai #chat-form {
+        grid-template-columns: minmax(0, 1fr) 76px;
+        gap: 8px;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .page-ai .ai-chat-input {
+        min-width: 0;
+        min-height: 48px;
+    }
+
+    .page-ai .ai-send-btn {
+        width: 76px;
+        min-width: 76px;
+        min-height: 48px;
+        margin: 0;
+        padding: 0 12px;
     }
 }

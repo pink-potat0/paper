@@ -13,6 +13,9 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": "24.x"
+  },
   "dependencies": {
     "@pump-fun/pump-sdk": "^1.36.0",
     "@solana/web3.js": "^1.98.4",

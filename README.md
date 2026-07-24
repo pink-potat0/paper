@@ -113,4 +113,4 @@ Vercel production must use MongoDB via `MONGODB_URI`. SQLite files are not durab
 - Provider credentials stay server-side and browser features use scoped API routes.
 - Never commit `.env`, local SQLite fallback files, temporary browser profiles, or server logs.
 
-See [SECURITY.md](SECURITY.md) for private vulnerability reporting and [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines.
+See [SECURITY.md](SECURITY.md) for private vulnerability reporting.

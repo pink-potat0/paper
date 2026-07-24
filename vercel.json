@@ -1,20 +1,15 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "index.html",
-          "index.js",
-          "pages/**",
-          "styles/**",
-          "scripts/**",
-          "assets/**"
-        ]
-      }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "server.js": {
+      "includeFiles": [
+        "index.html",
+        "pages/**",
+        "styles/**",
+        "scripts/**",
+        "assets/**"
+      ],
+      "maxDuration": 60
     }
-  ],
-  "routes": [{ "src": "/(.*)", "dest": "/server.js" }]
+  }
 }
